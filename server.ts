@@ -119,119 +119,6 @@ app.get('/.well-known/discord', (req, res) => {
   res.send('dh=f74ec827e58e3b50e2e2e7e251b0098aadfb36ac');
 });
 
-// Local DB API Routes
-app.get('/api/db/uploads', (req, res) => {
-  console.log(`[DB] Matching GET /api/db/uploads`);
-  const data = readDb('uploads');
-  console.log(`[DB] GET uploads - returning ${data.length} items`);
-  res.json(data);
-});
-
-app.post('/api/db/uploads', (req, res) => {
-  console.log('[DB] POST upload - received:', req.body.title);
-  const uploads = readDb('uploads');
-  const newItem = {
-    id: Date.now().toString(),
-    ...req.body,
-    createdAt: new Date().toISOString()
-  };
-  uploads.unshift(newItem);
-  writeDb('uploads', uploads);
-  console.log('[DB] POST upload - success');
-  res.json(newItem);
-});
-
-app.delete('/api/db/uploads/:id', (req, res) => {
-  const { id } = req.params;
-  const uploads = readDb('uploads');
-  const filtered = uploads.filter((u: any) => u.id !== id);
-  writeDb('uploads', filtered);
-  res.json({ success: true });
-});
-
-app.get('/api/db/suggestions', (req, res) => {
-  res.json(readDb('suggestions'));
-});
-
-app.post('/api/db/suggestions', (req, res) => {
-  const suggestions = readDb('suggestions');
-  const newItem = {
-    id: Date.now().toString(),
-    ...req.body,
-    createdAt: new Date().toISOString()
-  };
-  suggestions.unshift(newItem);
-  writeDb('suggestions', suggestions);
-  res.json(newItem);
-});
-
-app.get('/api/db/system-status', (req, res) => {
-  res.json(readSingleDb('system-status'));
-});
-
-app.post('/api/db/system-status', (req, res) => {
-  writeSingleDb('system-status', req.body);
-  res.json({ success: true });
-});
-
-app.get('/api/db/announcements', (req, res) => {
-  res.json(readDb('announcements'));
-});
-
-app.post('/api/db/announcements', (req, res) => {
-  const items = readDb('announcements');
-  const newItem = {
-    id: Date.now().toString(),
-    ...req.body,
-    createdAt: new Date().toISOString()
-  };
-  items.unshift(newItem);
-  writeDb('announcements', items);
-  res.json(newItem);
-});
-
-app.delete('/api/db/announcements/:id', (req, res) => {
-  const { id } = req.params;
-  const items = readDb('announcements');
-  const filtered = items.filter((i: any) => i.id !== id);
-  writeDb('announcements', filtered);
-  res.json({ success: true });
-});
-
-app.patch('/api/db/announcements/:id', (req, res) => {
-  const { id } = req.params;
-  const items = readDb('announcements');
-  const index = items.findIndex((i: any) => i.id === id);
-  if (index !== -1) {
-    items[index] = { ...items[index], ...req.body };
-    writeDb('announcements', items);
-    res.json(items[index]);
-  } else {
-    res.status(404).json({ error: 'Announcement not found' });
-  }
-});
-
-app.delete('/api/db/suggestions/:id', (req, res) => {
-  const { id } = req.params;
-  const items = readDb('suggestions');
-  const filtered = items.filter((i: any) => i.id !== id);
-  writeDb('suggestions', filtered);
-  res.json({ success: true });
-});
-
-app.patch('/api/db/suggestions/:id', (req, res) => {
-  const { id } = req.params;
-  const items = readDb('suggestions');
-  const index = items.findIndex((i: any) => i.id === id);
-  if (index !== -1) {
-    items[index] = { ...items[index], ...req.body };
-    writeDb('suggestions', items);
-    res.json(items[index]);
-  } else {
-    res.status(404).json({ error: 'Suggestion not found' });
-  }
-});
-
 const httpsAgent = new https.Agent({
   rejectUnauthorized: false
 });
@@ -476,7 +363,7 @@ app.get('/api/analytics/data', async (req, res) => {
 });
 
 // Final catch-all for unmatched API routes
-app.all(/^\/api\/.*$/, (req, res) => {
+app.all(/\/api\/.*/, (req, res) => {
   console.warn(`[Server] 404 NOT FOUND - API route match failed: ${req.method} ${req.url}`);
   res.status(404).json({ 
     error: 'API route not found', 
@@ -515,7 +402,7 @@ async function startServer() {
     app.use(express.static(distPath));
     
     // SPA fallback - only for non-API routes
-    app.get(/^\/.*$/, (req, res, next) => {
+    app.get(/.*/, (req, res, next) => {
       if (req.path.startsWith('/api')) {
         console.log(`[Server] API route fell through to SPA fallback: ${req.path}`);
         return next();

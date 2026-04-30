@@ -1,4 +1,4 @@
-import { Anime } from './types';
+import { Anime } from '../types';
 
 export const ANIME: Anime[] = [
             {

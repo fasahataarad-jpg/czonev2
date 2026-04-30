@@ -52,7 +52,13 @@ const LibrarySection: React.FC<LibrarySectionProps> = ({ title, items, category,
             {title}
           </h2>
           <p className="text-text-secondary text-xs font-bold uppercase tracking-widest">
-            {filteredItems.length} {t('Records Found')}
+            {filteredItems.length} {
+              category === 'movie' ? t('Movies Found') :
+              category === 'tv' ? t('TV Shows Found') :
+              category === 'anime' ? t('Animes Found') :
+              category === 'manga' ? t('Manga Found') :
+              t('Records Found')
+            }
           </p>
         </div>
         

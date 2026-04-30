@@ -10,8 +10,9 @@ import { GamesHub } from './components/GamesHub';
 import { Category, LibraryItem, StaffMember, Game, FavoriteItem } from './types';
 import { MOVIES_DATA, ANIME_DATA, MANGA_DATA, TV_DATA, STAFF_DATA, PARTNERS_DATA, PROXIES_DATA } from './constants';
 import { useLanguage } from './context/LanguageContext';
-import { auth, logout as firebaseLogout } from './firebase'; 
+import { auth, db, logout as firebaseLogout, handleFirestoreError, OperationType, isQuotaExceeded } from './firebase'; 
 import { onAuthStateChanged, User } from 'firebase/auth'; 
+import { collection, query, orderBy, onSnapshot } from 'firebase/firestore';
 
 import AdminDashboard from './components/AdminDashboard';
 import AuthModal from './components/AuthModal';
@@ -223,32 +224,22 @@ const App: React.FC = () => {
   }, [user, isAuthReady]);
 
   useEffect(() => {
-    const fetchUploads = async () => {
-      try {
-        console.log("Fetching uploads...");
-        const response = await fetch(`/api/db/uploads?t=${Date.now()}`, { cache: 'no-store' });
-        if (response.ok) {
-          const data = await response.json();
-          console.log("Uploads fetched:", data);
-          // Sort locally if not sorted by server
-          setUploads(data.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
-        } else {
-          console.error("Failed to fetch uploads, status:", response.status);
-        }
-      } catch (err) {
-        console.error("Failed to fetch uploads from local DB", err);
-      }
-    };
-    fetchUploads();
-    
-    // Auto-fetch if admin modal is closed so UI captures edits
-    if (!isAdminOpen) {
-      fetchUploads();
-    }
+    if (!isAuthReady) return;
 
-    const uploadTimer = setInterval(fetchUploads, 60000); // Poll uploads every minute
-    return () => clearInterval(uploadTimer);
-  }, [isAdminOpen]);
+    // Firestore - Uploads
+    const uploadsQuery = query(collection(db, 'uploads'), orderBy('createdAt', 'desc'));
+    const unsubscribe = onSnapshot(uploadsQuery, (snapshot) => {
+      const data = snapshot.docs.map(doc => ({ 
+        id: doc.id, 
+        ...doc.data() 
+      } as any));
+      setUploads(data);
+    }, (error) => {
+      handleFirestoreError(error, OperationType.LIST, 'uploads');
+    });
+
+    return () => unsubscribe();
+  }, [isAuthReady]);
 
   useEffect(() => {
     // Legacy quota handling removed as we moved to local server storage
@@ -808,7 +799,7 @@ const App: React.FC = () => {
                               <DiscordIcon size={14} /> Official Community
                             </div>
                             <h2 className="text-4xl md:text-5xl font-black italic uppercase tracking-tighter text-white mb-4">
-                              Join the <span className="text-[#5865F2]">Chillzone</span>
+                              Join the <span className="text-[#5865F2]">Discord</span>
                             </h2>
                             <p className="text-text-secondary text-lg font-medium max-w-xl">
                               Request new movies, get notified of fresh drops, report broken links, and chill with the community.

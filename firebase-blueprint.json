@@ -63,6 +63,23 @@
         "updatedAt": { "type": "string", "format": "date-time" },
         "updatedBy": { "type": "string" }
       }
+    },
+    "uploads": {
+      "title": "Media Upload",
+      "description": "Stores uploaded media items (movies, anime, etc).",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique identifier for the upload." },
+        "title": { "type": "string" },
+        "imageUrl": { "type": "string" },
+        "url": { "type": "string" },
+        "description": { "type": "string" },
+        "year": { "type": "string" },
+        "type": { "type": "string", "enum": ["movie", "tv", "anime", "manga", "game"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "createdBy": { "type": "string" }
+      },
+      "required": ["title", "imageUrl", "url", "type", "createdAt"]
     }
   },
   "firestore": {
@@ -85,6 +102,10 @@
     "/system/status": {
       "schema": "system_status",
       "description": "Global system status."
+    },
+    "/uploads/{uploadId}": {
+      "schema": "uploads",
+      "description": "User and admin content uploads."
     }
   }
 }

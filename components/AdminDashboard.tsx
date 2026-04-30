@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Plus, Trash2, Edit2, Save, AlertCircle, CheckCircle2, ShieldCheck, Users, Megaphone, Activity, Send, Check, Ban, UserCheck, Upload, Loader2, Database, Globe, Settings as SettingsIcon } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { db, auth } from '../firebase';
+import { db, auth, isQuotaExceeded, handleFirestoreError, OperationType } from '../firebase';
 import { collection, onSnapshot, query, orderBy, Timestamp, addDoc, serverTimestamp, deleteDoc, doc, updateDoc, setDoc } from 'firebase/firestore';
 
 interface User {
@@ -59,34 +59,33 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose, isSuperAdmin, 
       return;
     }
     setIsSubmitting(true);
+    setError(null);
+    setUploadSuccess('');
+    
     try {
-      const response = await fetch('/api/db/uploads', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: uploadTitle,
-          type: uploadType,
-          imageLink: imageLink,
-          driveLink: driveLink,
-          uploadedBy: auth.currentUser?.email || 'Unknown Admin'
-        })
+      if (isQuotaExceeded) {
+        throw new Error('Database quota exceeded. Please try again later.');
+      }
+      
+      await addDoc(collection(db, 'uploads'), {
+        title: uploadTitle,
+        type: uploadType,
+        imageLink: imageLink,
+        driveLink: driveLink,
+        uploadedBy: auth.currentUser?.email || 'Unknown Admin',
+        createdAt: serverTimestamp()
       });
 
-      if (response.ok) {
-        const newItem = await response.json();
-        setUploads([newItem, ...uploads]);
-        setUploadSuccess('Content added successfully!');
-        setUploadTitle('');
-        setImageLink('');
-        setDriveLink('');
-        if (fileInputRef.current) fileInputRef.current.value = '';
-        setTimeout(() => setUploadSuccess(''), 3000);
-      } else {
-        throw new Error('Failed to add content to local DB');
-      }
+      setUploadSuccess('Content added successfully!');
+      setUploadTitle('');
+      setImageLink('');
+      setDriveLink('');
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      setTimeout(() => setUploadSuccess(''), 3000);
     } catch (err) {
-      setError('Failed to log content.');
+      setError('Failed to log content to Firestore.');
       console.error(err);
+      handleFirestoreError(err, OperationType.WRITE, 'uploads');
     } finally {
       setIsSubmitting(false);
     }
@@ -123,21 +122,14 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose, isSuperAdmin, 
     });
     unsubsRef.current.suggestions = unsubSuggestions;
 
-    // Local DB - Uploads
-    if (activeTab === 'manage_uploads' && !hasFetchedLocal.current.manage_uploads) {
-        setIsLoading(true);
-        fetch(`/api/db/uploads?t=${Date.now()}`, { cache: 'no-store' })
-            .then(res => res.json())
-            .then(data => {
-                setUploads(data);
-                hasFetchedLocal.current.manage_uploads = true;
-                setIsLoading(false);
-            })
-            .catch(err => {
-                console.error("Failed to fetch uploads:", err);
-                setIsLoading(false);
-            });
-    }
+    // Firestore - Uploads
+    const uploadsQuery = query(collection(db, 'uploads'), orderBy('createdAt', 'desc'));
+    const unsubUploads = onSnapshot(uploadsQuery, (snapshot) => {
+      setUploads(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as any)));
+    }, (error) => {
+      handleFirestoreError(error, OperationType.LIST, 'uploads');
+    });
+    unsubsRef.current.uploads = unsubUploads;
 
     // Admins (Firebase)
     const adminsQuery = query(collection(db, 'allowed_admins'), orderBy('createdAt', 'desc'));
@@ -160,6 +152,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose, isSuperAdmin, 
       unsubsRef.current.suggestions?.();
       unsubsRef.current.admins?.();
       unsubsRef.current.system?.();
+      unsubsRef.current.uploads?.();
     };
   }, [activeTab]);
 
@@ -287,17 +280,17 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose, isSuperAdmin, 
   const handleDeleteUpload = async (id: string) => {
     if (!window.confirm('Are you sure you want to delete this content?')) return;
     try {
-      const response = await fetch(`/api/db/uploads/${id}`, { method: 'DELETE' });
-      if (response.ok) {
-        setUploads(uploads.filter(u => u.id !== id));
-        setSuccess('Content deleted successfully!');
-        setTimeout(() => setSuccess(null), 3000);
-      } else {
-        throw new Error('Failed to delete content from local DB');
+      if (isQuotaExceeded) {
+        setError('Database quota exceeded.');
+        return;
       }
+      await deleteDoc(doc(db, 'uploads', id));
+      setSuccess('Content deleted successfully!');
+      setTimeout(() => setSuccess(null), 3000);
     } catch (err) {
       console.error(err);
       setError('Failed to delete content.');
+      handleFirestoreError(err, OperationType.DELETE, `uploads/${id}`);
     }
   };
 
@@ -837,7 +830,9 @@ const AnalyticsTab = () => {
 
     useEffect(() => {
         setLoading(true);
-        fetch(`/api/analytics/data`)
+        const url = `/api/analytics/data`;
+        console.log(`[Debug] Admin fetching analytics from: ${window.location.origin}${url}`);
+        fetch(url)
             .then(res => {
                 if (!res.ok) throw new Error('Failed to fetch analytics');
                 return res.json();
