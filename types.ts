@@ -89,5 +89,6 @@ export interface StaffMember {
   role: string;
   img?: string; // Optional portrait image
   link?: string; // Social link
+  github?: string; // GitHub link
 }
 

@@ -912,7 +912,7 @@ export const PARTNERS_DATA: PartnerItem[] = [
 ];
 
 export const STAFF_DATA: StaffMember[] = [
-  { name: "Sols", role: "Owner", img: "https://i.pinimg.com/1200x/90/54/72/9054723fa92af09702e7e72b44f0c232.jpg", link: "https://guns.lol/ohsols" },
+  { name: "Sols", role: "Owner", img: "https://i.pinimg.com/1200x/90/54/72/9054723fa92af09702e7e72b44f0c232.jpg", link: "https://guns.lol/ohsols", github: "https://github.com/ohsols" },
   { name: "xsviiera", role: "Co-Owner", img: "https://i.pinimg.com/736x/de/7d/d1/de7dd1dac309810a55559f1b4bac930a.jpg", link: "https://guns.lol/iviera" },
   { name: "Zchill", role: "OG Owner", img: "https://scontent.xx.fbcdn.net/v/t1.15752-9/672133040_2038222876734050_2262774096605038761_n.jpg?_nc_cat=102&ccb=1-7&_nc_sid=9f807c&_nc_ohc=nDWKRPPXxu0Q7kNvwEfWTkI&_nc_oc=Adr80TbgHNcUtBG3JjE3XoM3URsoZrZDyi3XmguDhvq358f0nc-jnaiybCzu9i47-wF61RDr8q3SQRNMeq53B6Pu&_nc_ad=z-m&_nc_cid=0&_nc_zt=23&_nc_ht=scontent.xx&_nc_ss=7a32e&oh=03_Q7cD5AEFHrmN8SfiKU7Q7lVicy-Gmyzymze8x_E3Ij6I5Jh7qQ&oe=6A083C56", link: "https://guns.lol/illz" }
 ];

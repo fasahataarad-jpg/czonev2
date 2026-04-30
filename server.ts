@@ -363,6 +363,33 @@ app.get('/api/analytics/data', async (req, res) => {
 });
 
 // Final catch-all for unmatched API routes
+app.get('/api/proxies/check', async (req, res) => {
+  const url = req.query.url as string;
+  if (!url) return res.status(400).json({ error: 'URL is required' });
+
+  try {
+    const config = {
+      method: 'head' as const,
+      url: url,
+      httpsAgent: httpsAgent,
+      timeout: 5000,
+      validateStatus: (status: number) => status >= 200 && status < 400
+    };
+
+    let response;
+    try {
+      response = await axios(config);
+    } catch (e) {
+      // Fallback to GET if HEAD fails
+      response = await axios({ ...config, method: 'get' });
+    }
+
+    res.json({ online: true, status: response.status });
+  } catch (err) {
+    res.json({ online: false, error: 'TIMEOUT_OR_BLOCKED' });
+  }
+});
+
 app.all(/\/api\/.*/, (req, res) => {
   console.warn(`[Server] 404 NOT FOUND - API route match failed: ${req.method} ${req.url}`);
   res.status(404).json({ 
