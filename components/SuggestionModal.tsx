@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { X, Send, Loader2 } from 'lucide-react';
 import { db, auth, OperationType, handleFirestoreError, isQuotaExceeded } from '../firebase';
+import { useLanguage } from '../context/LanguageContext';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 
 interface SuggestionModalProps {
@@ -9,6 +10,7 @@ interface SuggestionModalProps {
 }
 
 const SuggestionModal: React.FC<SuggestionModalProps> = ({ onClose }) => {
+  const { t } = useLanguage();
   const [suggestion, setSuggestion] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -66,7 +68,7 @@ const SuggestionModal: React.FC<SuggestionModalProps> = ({ onClose }) => {
         <div className="p-6 border-b border-surface-hover flex justify-between items-center bg-bg/50">
           <h2 className="text-xl font-bold text-white flex items-center gap-2">
             <Send size={20} className="text-accent" />
-            Suggestion Bin
+            {t('Suggestion Bin')}
           </h2>
           <button
             onClick={onClose}
@@ -82,19 +84,19 @@ const SuggestionModal: React.FC<SuggestionModalProps> = ({ onClose }) => {
               <div className="w-16 h-16 bg-green-500/20 text-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Send size={32} />
               </div>
-              <h3 className="text-xl font-bold text-white mb-2">Suggestion Sent!</h3>
-              <p className="text-text-secondary">Thank you for your feedback. Our admins will review it shortly.</p>
+              <h3 className="text-xl font-bold text-white mb-2">{t('Suggestion Sent!')}</h3>
+              <p className="text-text-secondary">{t('Thank you for your feedback. Our admins will review it shortly.')}</p>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-text-secondary mb-2">
-                  What would you like to suggest?
+                  {t('What would you like to suggest?')}
                 </label>
                 <textarea
                   value={suggestion}
                   onChange={(e) => setSuggestion(e.target.value)}
-                  placeholder="Tell us your ideas, feature requests, or feedback..."
+                  placeholder={t('Tell us your ideas, feature requests, or feedback...')}
                   className="w-full h-32 bg-bg border border-surface-hover rounded-xl p-4 text-white placeholder-text-secondary/50 focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent resize-none"
                   maxLength={2000}
                   required
@@ -118,12 +120,12 @@ const SuggestionModal: React.FC<SuggestionModalProps> = ({ onClose }) => {
                 {isSubmitting ? (
                   <>
                     <Loader2 size={18} className="animate-spin" />
-                    Submitting...
+                    {t('Submitting...')}
                   </>
                 ) : (
                   <>
                     <Send size={18} />
-                    Submit Suggestion
+                    {t('Submit Suggestion')}
                   </>
                 )}
               </button>

@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { db, auth, handleFirestoreError, OperationType } from '../firebase';
+import { useLanguage } from '../context/LanguageContext';
 import { doc, onSnapshot, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { Loader2, X } from 'lucide-react';
 
 export const UpdateOverlay = () => {
+  const { t } = useLanguage();
   const [isUpdating, setIsUpdating] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
 
@@ -61,9 +63,9 @@ export const UpdateOverlay = () => {
             <button
               onClick={handleGlobalTurnOff}
               className="absolute top-10 right-10 p-4 bg-red-500/20 hover:bg-red-500/40 border border-red-500/30 rounded-full text-white transition-all flex items-center gap-2 group"
-              title="Turn off Maintenance Mode for everyone"
+              title={t('Turn off Maintenance Mode for everyone')}
             >
-              <span className="text-xs font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">End Maintenance (Global)</span>
+              <span className="text-xs font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">{t('End Maintenance (Global)')}</span>
               <X size={24} />
             </button>
           )}
@@ -76,7 +78,7 @@ export const UpdateOverlay = () => {
           >
             <div className="flex items-center justify-center gap-4">
               <h1 className="text-6xl md:text-8xl font-black italic uppercase tracking-tighter text-white">
-                UPDATING!!!
+                {t('UPDATING!!!')}
               </h1>
               <Loader2 className="w-12 h-12 md:w-16 md:h-16 text-accent animate-spin" />
             </div>
@@ -87,7 +89,7 @@ export const UpdateOverlay = () => {
               transition={{ delay: 0.3 }}
               className="text-accent font-black uppercase tracking-[0.3em] text-lg md:text-xl"
             >
-              refresh your page.
+              {t('refresh your page.')}
             </motion.p>
 
             <motion.div
@@ -117,7 +119,7 @@ export const UpdateOverlay = () => {
 
           <div className="absolute bottom-10 left-0 right-0">
             <p className="text-white/20 text-[10px] font-black uppercase tracking-widest">
-              ChillZone System Maintenance
+              {t('ChillZone System Maintenance')}
             </p>
           </div>
         </motion.div>

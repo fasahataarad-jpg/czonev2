@@ -2,6 +2,8 @@
 import React from 'react';
 import { X, GitCommit, Calendar } from 'lucide-react';
 import { motion, Variants } from 'framer-motion';
+import { TranslatedText } from './TranslatedText';
+import { useLanguage } from '../context/LanguageContext';
 
 interface UpdateLogProps {
   onClose: () => void;
@@ -65,13 +67,15 @@ const UPDATES = [
   }
 ];
 
-const getDaysAgo = (dateStr: string) => {
+const getDaysAgo = (dateStr: string, t: (k: string) => string) => {
   const date = new Date(dateStr.includes('T') ? dateStr : dateStr + "T00:00:00");
   const now = new Date();
   now.setHours(0, 0, 0, 0);
   const diffTime = now.getTime() - date.getTime();
   const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-  return diffDays === 0 ? "Today" : `${diffDays} days ago`;
+  
+  if (diffDays === 0) return t('Today');
+  return `${diffDays} ${diffDays === 1 ? t('day ago') : t('days ago')}`;
 };
 
 const containerVariants: Variants = {
@@ -90,6 +94,8 @@ const itemVariants: Variants = {
 };
 
 const UpdateLog: React.FC<UpdateLogProps> = ({ onClose }) => {
+  const { t } = useLanguage();
+
   return (
     <motion.div 
       initial={{ opacity: 0, scale: 0.95, y: -20 }}
@@ -101,7 +107,7 @@ const UpdateLog: React.FC<UpdateLogProps> = ({ onClose }) => {
       <div className="p-4 border-b border-surface-hover flex items-center justify-between sticky top-0 bg-black/40 backdrop-blur-md z-10">
         <h3 className="font-black uppercase italic tracking-tighter text-lg flex items-center gap-2">
           <GitCommit size={16} className="text-accent" />
-          Update Log
+          <TranslatedText text="Update Log" />
         </h3>
         <button onClick={onClose} className="text-text-secondary hover:text-white transition-colors">
           <X size={16} />
@@ -121,13 +127,13 @@ const UpdateLog: React.FC<UpdateLogProps> = ({ onClose }) => {
               {update.version && <span className="text-accent font-bold text-xs bg-accent/10 px-2 py-0.5 rounded-full border border-accent/20">v{update.version}</span>}
               <span className="text-[10px] text-text-secondary font-mono flex items-center gap-1">
                 <Calendar size={10} />
-                {getDaysAgo(update.date)}
+                {getDaysAgo(update.date, t)}
               </span>
             </div>
             <ul className="space-y-1">
               {update.changes.map((change, cIdx) => (
                 <li key={cIdx} className="text-xs text-[#d4d4d8] leading-relaxed">
-                  • {change}
+                  • <TranslatedText text={change} />
                 </li>
               ))}
             </ul>

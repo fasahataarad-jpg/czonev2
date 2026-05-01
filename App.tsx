@@ -6,7 +6,6 @@ import Settings, { defaultThemes } from './components/Settings';
 import Partners from './components/Partners';
 import UpdateLog from './components/UpdateLog';
 import DateTimeWidget from './components/DateTimeWidget';
-import { GamesHub } from './components/GamesHub';
 import { Category, LibraryItem, StaffMember, Game, FavoriteItem } from './types';
 import { MOVIES_DATA, ANIME_DATA, MANGA_DATA, TV_DATA, STAFF_DATA, PARTNERS_DATA, PROXIES_DATA } from './constants';
 import { useLanguage } from './context/LanguageContext';
@@ -20,10 +19,12 @@ import SuggestionModal from './components/SuggestionModal';
 import DonatePage from './components/DonatePage';
 import ProxiesPage from './components/ProxiesPage';
 import StaffPage from './components/StaffPage';
+import GamesEmbed from './components/GamesEmbed';
 import MusicPlayer from './components/MusicPlayer';
 import { SiteAnnouncements } from './components/SiteAnnouncements';
 import { UpdateOverlay } from './components/UpdateOverlay';
 import { ChillZoneLogo } from './components/ChillZoneLogo';
+import { TranslatedText } from './components/TranslatedText';
 import { Search, X, Film, Sparkles, BookOpen, Tv, SearchX, PlayCircle, Star, Globe, Users, ExternalLink, ShieldAlert, Zap, Activity, Loader2, Book, AlertTriangle, Settings as SettingsIcon, GitCommit, ChevronDown, LayoutGrid, Gamepad2, ShieldCheck, LogOut, LogIn, Send, Music, MessageSquare } from 'lucide-react';
 
 const DEFAULT_LOGO = "/logo.svg";
@@ -40,36 +41,6 @@ const DiscordIcon = ({ size = 20, className = "" }: { size?: number, className?:
     <path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1971.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189z"/>
   </svg>
 );
-
-const TranslatedText: React.FC<{ text: string }> = ({ text }) => {
-  const { translateDynamic, language } = useLanguage();
-  const [translated, setTranslated] = useState(text);
-
-  useEffect(() => {
-    let isMounted = true;
-    const translate = async () => {
-      if (language === 'en-US') {
-        if (isMounted) setTranslated(text);
-        return;
-      }
-      
-      // Fast check for cache before calling translateDynamic
-      const cacheKey = `${language}:${text}`;
-      const savedCache = JSON.parse(localStorage.getItem('chillzone_translation_cache') || '{}');
-      if (savedCache[cacheKey]) {
-        if (isMounted) setTranslated(savedCache[cacheKey]);
-        return;
-      }
-
-      const result = await translateDynamic(text);
-      if (isMounted) setTranslated(result);
-    };
-    translate();
-    return () => { isMounted = false; };
-  }, [text, language, translateDynamic]);
-
-  return <>{translated}</>;
-};
 
 const ScrambleEffect: React.FC = () => {
   useEffect(() => {
@@ -339,7 +310,7 @@ const App: React.FC = () => {
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
       if (event.data?.type === 'EXIT_GAME') {
-        // Game exit handled by GamesHub now
+        // Games are now handled via external iframe hub
       }
     };
     window.addEventListener('message', handleMessage);
@@ -506,14 +477,14 @@ const App: React.FC = () => {
         <div className="bg-black text-white py-2 px-4 text-sm font-bold z-[60] relative flex items-center shadow-lg border-b border-white/10 overflow-hidden">
           <div className="flex-1 overflow-hidden relative h-6 flex items-center">
             <div className="animate-marquee absolute w-full text-left">
-              Don't Forget You Can Pay For Custom Movies, Animes, Tv Shows, OR WTV U Want!
+              <TranslatedText text="Don't Forget You Can Pay For Custom Movies, Animes, Tv Shows, OR WTV U Want!" />
             </div>
           </div>
           <button 
             onClick={() => navigate('donate')} 
             className="bg-white/10 hover:bg-white/20 border border-white/20 px-4 py-1 rounded-full text-xs uppercase tracking-wider transition-colors shrink-0 ml-4 z-10 relative"
           >
-            Donate
+            {t('Donate')}
           </button>
         </div>
 
@@ -799,13 +770,13 @@ const App: React.FC = () => {
                           <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-[#5865F2]/20 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/4 pointer-events-none group-hover:bg-[#5865F2]/30 transition-colors duration-700" />
                           <div className="relative z-10 flex-1">
                             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#5865F2]/20 text-[#5865F2] font-black text-xs uppercase tracking-widest mb-6 border border-[#5865F2]/30">
-                              <DiscordIcon size={14} /> Official Community
+                              <DiscordIcon size={14} /> <TranslatedText text="Official Community" />
                             </div>
                             <h2 className="text-4xl md:text-5xl font-black italic uppercase tracking-tighter text-white mb-4">
-                              Join the <span className="text-[#5865F2]">Discord</span>
+                              <TranslatedText text="Join the" /> <span className="text-[#5865F2]">Discord</span>
                             </h2>
                             <p className="text-text-secondary text-lg font-medium max-w-xl">
-                              Request new movies, get notified of fresh drops, report broken links, and chill with the community.
+                              <TranslatedText text="Request new movies, get notified of fresh drops, report broken links, and chill with the community." />
                             </p>
                           </div>
                           <motion.a
@@ -816,7 +787,7 @@ const App: React.FC = () => {
                             whileTap={{ scale: 0.95 }}
                             className="relative z-10 shrink-0 bg-[#5865F2] hover:bg-[#4752C4] text-white px-12 py-6 rounded-[24px] font-black uppercase tracking-widest text-lg italic transition-colors shadow-[0_0_40px_rgba(88,101,242,0.3)] flex items-center gap-4"
                           >
-                            <span>Connect Now</span>
+                            <span><TranslatedText text="Connect Now" /></span>
                             <MessageSquare size={24} />
                           </motion.a>
                         </motion.div>
@@ -910,13 +881,12 @@ const App: React.FC = () => {
                            </div>
                         </div>
 
-                        {/* Quick Stats/About */}
                         <div className="text-center py-12">
                           <div className="flex flex-wrap justify-center gap-12 text-white/50 text-[10px] font-black uppercase tracking-[0.2em]">
-                            <span>Streaming</span>
-                            <span>Gaming</span>
-                            <span>Socials</span>
-                            <span>Anime</span>
+                            <span><TranslatedText text="Streaming" /></span>
+                            <span><TranslatedText text="Gaming" /></span>
+                            <span><TranslatedText text="Socials" /></span>
+                            <span><TranslatedText text="Anime" /></span>
                           </div>
                         </div>
                       </motion.div>
@@ -931,7 +901,7 @@ const App: React.FC = () => {
                     )}
 
                     {activeCategory === 'games' && (
-                      <GamesHub />
+                      <GamesEmbed />
                     )}
                     {activeCategory === 'movies' && (
                       <>
@@ -1070,10 +1040,10 @@ const App: React.FC = () => {
                             className="h-1 bg-accent mx-auto mb-6 rounded-full"
                           ></motion.div>
                           <h2 className="text-4xl md:text-6xl font-black uppercase italic tracking-tighter text-white mb-4">
-                            WIP (Soon)
+                            <TranslatedText text="WIP (Soon)" />
                           </h2>
                           <p className="text-text-secondary text-xs uppercase tracking-[0.5em] font-bold opacity-50">
-                            Our social channels are currently under construction
+                            <TranslatedText text="Our social channels are currently under construction" />
                           </p>
                         </div>
                       </motion.div>
@@ -1140,7 +1110,7 @@ const App: React.FC = () => {
                       rel="noopener noreferrer"
                       className="absolute top-4 right-4 z-50 bg-bg/80 hover:bg-accent p-4 rounded-2xl transition-all duration-300 border border-white/5 text-white flex items-center gap-2"
                     >
-                      <ExternalLink size={20} /> <span className="text-xs font-bold uppercase tracking-wider hidden md:block">Open Externally</span>
+                      <ExternalLink size={20} /> <span className="text-xs font-bold uppercase tracking-wider hidden md:block"><TranslatedText text="Open Externally" /></span>
                     </a>
                     <iframe 
                       src={iframeUrl}
@@ -1195,7 +1165,7 @@ const App: React.FC = () => {
                       className={`w-full py-7 rounded-[2.5rem] font-black flex items-center justify-center gap-4 text-xs tracking-[0.4em] uppercase italic transition-all duration-500 shadow-2xl ${isSearchLink ? 'bg-surface-active text-text-muted hover:bg-surface-hover hover:text-white border border-white/10' : 'bg-accent text-white hover:bg-accent/90'}`}
                     >
                       {isSearchLink ? <Search size={24} /> : <PlayCircle size={24} />} 
-                      {isSearchLink ? t('SEARCH ARCHIVE') : `${t('Watch:')} ${selectedItem.item.t}`}
+                      {isSearchLink ? t('SEARCH ARCHIVE') : <><TranslatedText text="Watch:" /> <TranslatedText text={selectedItem.item.t} /></>}
                     </motion.a>
                   )}
                   {isSearchLink && (
@@ -1281,12 +1251,12 @@ const App: React.FC = () => {
               <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
                 <AlertTriangle className="w-8 h-8 text-red-500" />
               </div>
-              <h2 className="text-2xl font-black italic uppercase tracking-widest text-white mb-4">Quota Exceeded</h2>
+              <h2 className="text-2xl font-black italic uppercase tracking-widest text-white mb-4"><TranslatedText text="Quota Exceeded" /></h2>
               <p className="text-neutral-400 mb-8 font-medium">
-                The free daily read/write limit for this database has been reached. The quota will reset tomorrow.
+                <TranslatedText text="The free daily read/write limit for this database has been reached. The quota will reset tomorrow." />
               </p>
               <p className="text-sm text-neutral-500 mb-8">
-                Detailed quota information can be found under the Spark plan column in the Enterprise edition section of <a href="https://firebase.google.com/pricing#cloud-firestore" target="_blank" rel="noreferrer" className="text-accent hover:underline">Firebase Pricing</a>.
+                <TranslatedText text="Detailed quota information can be found under the Spark plan column in the Enterprise edition section of" /> <a href="https://firebase.google.com/pricing#cloud-firestore" target="_blank" rel="noreferrer" className="text-accent hover:underline">Firebase Pricing</a>.
               </p>
               <button 
                 onClick={() => {
@@ -1295,7 +1265,7 @@ const App: React.FC = () => {
                 }}
                 className="w-full py-4 bg-white text-black rounded-xl font-black uppercase tracking-widest hover:scale-[1.02] transition-all"
               >
-                Dismiss
+                <TranslatedText text="Dismiss" />
               </button>
             </motion.div>
           </motion.div>

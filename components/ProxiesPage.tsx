@@ -3,27 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Globe, ExternalLink, Search, Zap, Shield, Link2, LayoutGrid, List } from 'lucide-react';
 import { PROXIES_DATA } from '../constants';
 import { useLanguage } from '../context/LanguageContext';
-
-const TranslatedText: React.FC<{ text: string }> = ({ text }) => {
-  const { translateDynamic, language } = useLanguage();
-  const [translated, setTranslated] = React.useState(text);
-
-  React.useEffect(() => {
-    let isMounted = true;
-    const translate = async () => {
-      if (language === 'en-US') {
-        if (isMounted) setTranslated(text);
-        return;
-      }
-      const result = await translateDynamic(text);
-      if (isMounted) setTranslated(result);
-    };
-    translate();
-    return () => { isMounted = false; };
-  }, [text, language, translateDynamic]);
-
-  return <>{translated}</>;
-};
+import { TranslatedText } from './TranslatedText';
 
 const ProxiesPage: React.FC = () => {
   const { t } = useLanguage();

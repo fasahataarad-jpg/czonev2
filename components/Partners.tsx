@@ -4,8 +4,11 @@ import { PARTNERS_DATA } from '../constants';
 import { PartnerItem } from '../types';
 import { MessageSquare, Globe, ArrowUpRight } from 'lucide-react';
 import PartnerModal from './PartnerModal';
+import { useLanguage } from '../context/LanguageContext';
+import { TranslatedText } from './TranslatedText';
 
 const Partners: React.FC = () => {
+  const { t } = useLanguage();
   const [selectedPartner, setSelectedPartner] = useState<PartnerItem | null>(null);
   const [hoveredPartner, setHoveredPartner] = useState<PartnerItem | null>(null);
 
@@ -40,13 +43,13 @@ const Partners: React.FC = () => {
             className="mb-16 text-center flex flex-col items-center"
           >
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-white font-bold text-xs uppercase tracking-widest mb-6 backdrop-blur-md">
-              <Globe size={14} className="text-accent" /> Network
+              <Globe size={14} className="text-accent" /> <TranslatedText text="Network" />
             </div>
             <h1 className="text-5xl md:text-7xl font-black italic uppercase tracking-tighter mb-6 text-transparent bg-clip-text bg-gradient-to-b from-white to-white/40 drop-shadow-2xl">
-              Chillzone Partners
+              <TranslatedText text="Chillzone Partners" />
             </h1>
             <p className="text-text-secondary text-lg max-w-2xl font-medium">
-              Discover the incredible creators, communities, and projects we collaborate with to bring you the best experience.
+              <TranslatedText text="Discover the incredible creators, communities, and projects we collaborate with to bring you the best experience." />
             </p>
           </motion.div>
 
@@ -80,12 +83,12 @@ const Partners: React.FC = () => {
 
                 {/* Typography */}
                 <h2 className="text-3xl font-black italic uppercase tracking-tighter mb-3 text-white/90 group-hover:text-white transition-colors duration-500">
-                  {partner.name}
+                  <TranslatedText text={partner.name} />
                 </h2>
                 <div className="flex items-center gap-3 text-text-secondary text-xs font-bold uppercase tracking-widest mb-10">
-                  <span>Partner</span>
+                  <span><TranslatedText text="Partner" /></span>
                   <span className="w-1 h-1 rounded-full bg-white/20" />
-                  <span>By <span className="text-white">{partner.owner}</span></span>
+                  <span><TranslatedText text="By" /> <span className="text-white">{partner.owner}</span></span>
                 </div>
 
                 {/* Actions */}
@@ -94,7 +97,7 @@ const Partners: React.FC = () => {
                     onClick={() => setSelectedPartner(partner)}
                     className="flex-1 bg-white hover:bg-gray-200 text-black px-6 py-4 rounded-2xl font-black uppercase text-sm tracking-widest transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
                   >
-                    Explore <ArrowUpRight size={18} />
+                    <TranslatedText text="Explore" /> <ArrowUpRight size={18} />
                   </button>
                   {partner.discord && (
                     <a
@@ -102,7 +105,7 @@ const Partners: React.FC = () => {
                       target="_blank"
                       rel="noopener noreferrer"
                       className="w-14 h-14 flex items-center justify-center bg-[#5865F2]/10 text-[#5865F2] hover:bg-[#5865F2] hover:text-white hover:shadow-[0_0_20px_rgba(88,101,242,0.4)] rounded-2xl transition-all hover:scale-105 active:scale-95 shrink-0"
-                      title="Join Discord"
+                      title={t('Join Discord')}
                     >
                       <MessageSquare size={20} />
                     </a>

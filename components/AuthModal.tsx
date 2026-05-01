@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Mail, Lock, User, LogIn, UserPlus, AlertCircle, Loader2 } from 'lucide-react';
 import { signInWithGoogle, signUpWithEmail, loginWithEmail } from '../firebase';
+import { useLanguage } from '../context/LanguageContext';
 
 interface AuthModalProps {
   onClose: () => void;
@@ -9,6 +10,7 @@ interface AuthModalProps {
 }
 
 const AuthModal: React.FC<AuthModalProps> = ({ onClose, showCloseButton = true }) => {
+  const { t } = useLanguage();
   const [mode, setMode] = useState<'login' | 'signup'>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -64,10 +66,10 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose, showCloseButton = true }
       <div className="flex justify-between items-center mb-8">
         <div>
           <h2 className="text-2xl font-black uppercase italic tracking-tighter">
-            {mode === 'login' ? 'Welcome Back' : 'Create Account'}
+            {mode === 'login' ? t('Welcome Back') : t('Create Account')}
           </h2>
           <p className="text-[10px] font-black uppercase tracking-widest text-neutral-500">
-            {mode === 'login' ? 'Sign in to your account' : 'Join the Discord'}
+            {mode === 'login' ? t('Sign in to your account') : t('Join the Discord')}
           </p>
         </div>
         {showCloseButton && (
@@ -80,12 +82,12 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose, showCloseButton = true }
       <form onSubmit={handleSubmit} className="space-y-4">
         {mode === 'signup' && (
           <div className="space-y-1">
-            <label className="text-[10px] font-black uppercase tracking-widest text-neutral-500 ml-1">Username</label>
+            <label className="text-[10px] font-black uppercase tracking-widest text-neutral-500 ml-1">{t('Username')}</label>
             <div className="relative">
               <User className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-500" size={18} />
               <input
                 type="text"
-                placeholder="Your display name"
+                placeholder={t('Your display name')}
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 className="w-full bg-white/5 border border-white/10 rounded-xl pl-12 pr-4 py-3 text-sm focus:outline-none focus:border-accent/50 transition-all"
@@ -96,7 +98,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose, showCloseButton = true }
         )}
 
         <div className="space-y-1">
-          <label className="text-[10px] font-black uppercase tracking-widest text-neutral-500 ml-1">Email Address</label>
+          <label className="text-[10px] font-black uppercase tracking-widest text-neutral-500 ml-1">{t('Email Address')}</label>
           <div className="relative">
             <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-500" size={18} />
             <input
@@ -111,7 +113,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose, showCloseButton = true }
         </div>
 
         <div className="space-y-1">
-          <label className="text-[10px] font-black uppercase tracking-widest text-neutral-500 ml-1">Password</label>
+          <label className="text-[10px] font-black uppercase tracking-widest text-neutral-500 ml-1">{t('Password')}</label>
           <div className="relative">
             <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-500" size={18} />
             <input
@@ -140,7 +142,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose, showCloseButton = true }
           className="w-full bg-accent hover:bg-accent/80 disabled:opacity-50 text-white font-black uppercase tracking-widest py-4 rounded-xl transition-all shadow-lg shadow-accent/20 flex items-center justify-center gap-2"
         >
           {isLoading ? <Loader2 className="animate-spin" size={18} /> : (mode === 'login' ? <LogIn size={18} /> : <UserPlus size={18} />)}
-          {mode === 'login' ? 'Sign In' : 'Create Account'}
+          {mode === 'login' ? t('Sign In') : t('Create Account')}
         </button>
       </form>
 
@@ -149,7 +151,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose, showCloseButton = true }
           <div className="w-full border-t border-white/5"></div>
         </div>
         <div className="relative flex justify-center text-[10px] font-black uppercase tracking-widest">
-          <span className="bg-[#0a0a0a] px-4 text-neutral-500">Or continue with</span>
+          <span className="bg-[#0a0a0a] px-4 text-neutral-500">{t('Or continue with')}</span>
         </div>
       </div>
 
@@ -169,10 +171,11 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose, showCloseButton = true }
 
       <div className="mt-auto pt-8 text-center">
         <button
+          type="button"
           onClick={() => setMode(mode === 'login' ? 'signup' : 'login')}
           className="text-xs font-black uppercase tracking-widest text-neutral-500 hover:text-accent transition-all"
         >
-          {mode === 'login' ? "Don't have an account? Sign Up" : "Already have an account? Sign In"}
+          {mode === 'login' ? t("Don't have an account? Sign Up") : t("Already have an account? Sign In")}
         </button>
       </div>
     </div>

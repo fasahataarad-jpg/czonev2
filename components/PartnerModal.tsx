@@ -2,6 +2,7 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, PlayCircle } from 'lucide-react';
 import { PartnerItem } from '../types';
+import { TranslatedText } from './TranslatedText';
 
 interface PartnerModalProps {
   partner: PartnerItem;
@@ -26,7 +27,7 @@ const PartnerModal: React.FC<PartnerModalProps> = ({ partner, onClose }) => {
           onClick={(e) => e.stopPropagation()}
         >
           <div className="flex justify-between items-center mb-8">
-            <h2 className="text-2xl font-black italic uppercase text-white">{partner.name}</h2>
+            <h2 className="text-2xl font-black italic uppercase text-white"><TranslatedText text={partner.name} /></h2>
             <button onClick={onClose} className="text-text-secondary hover:text-white">
               <X size={24} />
             </button>
@@ -42,7 +43,7 @@ const PartnerModal: React.FC<PartnerModalProps> = ({ partner, onClose }) => {
                   className="flex items-center justify-center gap-3 bg-red-600 hover:bg-red-700 text-white px-6 py-4 rounded-full font-black uppercase tracking-widest transition-all"
                 >
                   <PlayCircle size={20} />
-                  <span>{link.name}</span>
+                  <span><TranslatedText text={link.name} /></span>
                 </a>
               ))
             ) : (
@@ -53,7 +54,7 @@ const PartnerModal: React.FC<PartnerModalProps> = ({ partner, onClose }) => {
                 className="flex items-center justify-center gap-3 bg-red-600 hover:bg-red-700 text-white px-6 py-4 rounded-full font-black uppercase tracking-widest transition-all"
               >
                 <PlayCircle size={20} />
-                <span>VISIT WEBSITE</span>
+                <span><TranslatedText text="VISIT WEBSITE" /></span>
               </a>
             )}
           </div>

@@ -3,27 +3,7 @@ import { motion } from 'framer-motion';
 import { ShieldCheck, Code, Stars, Github, Globe, MessageSquare, Heart, Sparkles, ExternalLink } from 'lucide-react';
 import { STAFF_DATA } from '../constants';
 import { useLanguage } from '../context/LanguageContext';
-
-const TranslatedText: React.FC<{ text: string }> = ({ text }) => {
-  const { translateDynamic, language } = useLanguage();
-  const [translated, setTranslated] = React.useState(text);
-
-  React.useEffect(() => {
-    let isMounted = true;
-    const translate = async () => {
-      if (language === 'en-US') {
-        if (isMounted) setTranslated(text);
-        return;
-      }
-      const result = await translateDynamic(text);
-      if (isMounted) setTranslated(result);
-    };
-    translate();
-    return () => { isMounted = false; };
-  }, [text, language, translateDynamic]);
-
-  return <>{translated}</>;
-};
+import { TranslatedText } from './TranslatedText';
 
 const StaffPage: React.FC = () => {
   const { t } = useLanguage();
@@ -116,7 +96,7 @@ const StaffPage: React.FC = () => {
                     {member.name}
                 </h3>
                 <div className="flex items-center gap-2 mb-6">
-                    <span className="px-3 py-1 bg-white/5 rounded-full text-[10px] font-black uppercase tracking-widest text-[#00d632] border border-[#00d632]/20">Active</span>
+                    <span className="px-3 py-1 bg-white/5 rounded-full text-[10px] font-black uppercase tracking-widest text-[#00d632] border border-[#00d632]/20"><TranslatedText text="Active" /></span>
                     <span className="text-text-muted font-bold text-xs uppercase tracking-widest italic">{t(member.role)}</span>
                 </div>
 

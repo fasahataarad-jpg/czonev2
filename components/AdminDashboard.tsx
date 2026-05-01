@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Plus, Trash2, Edit2, Save, AlertCircle, CheckCircle2, ShieldCheck, Users, Megaphone, Activity, Send, Check, Ban, UserCheck, Upload, Loader2, Database, Globe, Settings as SettingsIcon } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { db, auth, isQuotaExceeded, handleFirestoreError, OperationType } from '../firebase';
+import { useLanguage } from '../context/LanguageContext';
 import { collection, onSnapshot, query, orderBy, Timestamp, addDoc, serverTimestamp, deleteDoc, doc, updateDoc, setDoc } from 'firebase/firestore';
 
 interface User {
@@ -44,6 +45,7 @@ interface AdminDashboardProps {
 }
 
 const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose, isSuperAdmin, isAdmin }) => {
+  const { t } = useLanguage();
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [uploads, setUploads] = useState<any[]>([]);
   const [uploadType, setUploadType] = useState('movie');
@@ -347,8 +349,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose, isSuperAdmin, 
             <ShieldCheck className="w-6 h-6 text-accent" />
           </div>
           <div>
-            <h2 className="text-xl font-black uppercase italic tracking-tighter">Admin Dashboard</h2>
-            <p className="text-[10px] font-black uppercase tracking-widest text-neutral-500">Authorized Personnel Only</p>
+            <h2 className="text-xl font-black uppercase italic tracking-tighter">{t('Admin Dashboard')}</h2>
+            <p className="text-[10px] font-black uppercase tracking-widest text-neutral-500">{t('Authorized Personnel Only')}</p>
           </div>
         </div>
         <button 
@@ -369,14 +371,14 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose, isSuperAdmin, 
       {/* Tabs */}
       <div className="flex border-b border-white/5 px-6 overflow-x-auto custom-scrollbar">
         {[
-          { id: 'announcements', icon: Megaphone, label: 'Announcements' },
-          { id: 'suggestions', icon: Send, label: 'Suggestions' },
-          { id: 'analytics', icon: Activity, label: 'Analytics' },
-          { id: 'upload', icon: Upload, label: 'Upload' },
-          { id: 'manage_uploads', icon: Database, label: 'Manage Uploads' },
-          { id: 'system', icon: SettingsIcon, label: 'System' },
+          { id: 'announcements', icon: Megaphone, label: t('Announcements') },
+          { id: 'suggestions', icon: Send, label: t('Suggestions') },
+          { id: 'analytics', icon: Activity, label: t('Analytics') },
+          { id: 'upload', icon: Upload, label: t('Upload') },
+          { id: 'manage_uploads', icon: Database, label: t('Manage Uploads') },
+          { id: 'system', icon: SettingsIcon, label: t('System') },
           ...(isSuperAdmin || isAdmin ? [
-            { id: 'admins', icon: ShieldCheck, label: 'Manage Admins' }
+            { id: 'admins', icon: ShieldCheck, label: t('Manage Admins') }
           ] : [])
         ].map((tab) => (
           <button
@@ -408,19 +410,19 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose, isSuperAdmin, 
 
         {!isLoading && activeTab === 'upload' && (
           <div className="p-6 space-y-6">
-            <h3 className="text-xl font-black uppercase italic tracking-tighter">Add New Content</h3>
-            {uploadSuccess && <p className="text-green-500">{uploadSuccess}</p>}
+            <h3 className="text-xl font-black uppercase italic tracking-tighter">{t('Add New Content')}</h3>
+            {uploadSuccess && <p className="text-green-500">{t(uploadSuccess)}</p>}
             <select value={uploadType} onChange={(e) => setUploadType(e.target.value)} className="w-full bg-surface border border-white/10 rounded-xl p-3 text-white">
-              <option value="movie">Movie</option>
-              <option value="anime">Anime</option>
-              <option value="manga">Manga</option>
-              <option value="tv">TV Show</option>
+              <option value="movie">{t('Movie')}</option>
+              <option value="anime">{t('Anime')}</option>
+              <option value="manga">{t('Manga')}</option>
+              <option value="tv">{t('TV Show')}</option>
             </select>
-            <input type="text" placeholder="Title" value={uploadTitle} onChange={(e) => setUploadTitle(e.target.value)} className="w-full bg-surface border border-white/10 rounded-xl p-3 text-white" />
-            <input type="text" placeholder="Content Link (Google Drive, MP4, etc)" value={driveLink} onChange={(e) => setDriveLink(e.target.value)} className="w-full bg-surface border border-white/10 rounded-xl p-3 text-white" />
-            <input type="text" placeholder="Thumbnail Image Link" value={imageLink} onChange={(e) => setImageLink(e.target.value)} className="w-full bg-surface border border-white/10 rounded-xl p-3 text-white" />
+            <input type="text" placeholder={t('Title')} value={uploadTitle} onChange={(e) => setUploadTitle(e.target.value)} className="w-full bg-surface border border-white/10 rounded-xl p-3 text-white" />
+            <input type="text" placeholder={t('Content Link (Google Drive, MP4, etc)')} value={driveLink} onChange={(e) => setDriveLink(e.target.value)} className="w-full bg-surface border border-white/10 rounded-xl p-3 text-white" />
+            <input type="text" placeholder={t('Thumbnail Image Link')} value={imageLink} onChange={(e) => setImageLink(e.target.value)} className="w-full bg-surface border border-white/10 rounded-xl p-3 text-white" />
             <button onClick={handleUpload} disabled={isSubmitting} className="w-full bg-accent text-black font-black uppercase py-3 rounded-xl hover:bg-accent/90 transition-all">
-                {isSubmitting ? 'Submitting...' : 'Add Content'}
+                {isSubmitting ? t('Submitting...') : t('Add Content')}
             </button>
           </div>
         )}
@@ -428,8 +430,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose, isSuperAdmin, 
           <div className="space-y-6">
             <div className="flex items-center justify-between flex-wrap gap-4">
               <div>
-                <h3 className="text-2xl font-black uppercase italic tracking-tighter">Manage Added Content</h3>
-                <p className="text-neutral-500 text-xs font-bold uppercase tracking-widest mt-1">Total Items: {uploads.length}</p>
+                <h3 className="text-2xl font-black uppercase italic tracking-tighter">{t('Manage Added Content')}</h3>
+                <p className="text-neutral-500 text-xs font-bold uppercase tracking-widest mt-1">{t('Total Items')}: {uploads.length}</p>
               </div>
             </div>
             
@@ -438,8 +440,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose, isSuperAdmin, 
                 <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4 text-neutral-600">
                   <Database size={32} />
                 </div>
-                <p className="text-neutral-500 font-bold">No content has been added yet.</p>
-                <button onClick={() => setActiveTab('upload')} className="text-accent text-xs font-black uppercase tracking-widest mt-4 hover:underline">Add something now</button>
+                <p className="text-neutral-500 font-bold">{t('No content has been added yet.')}</p>
+                <button onClick={() => setActiveTab('upload')} className="text-accent text-xs font-black uppercase tracking-widest mt-4 hover:underline">{t('Add something now')}</button>
               </div>
             ) : (
               <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
@@ -499,7 +501,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose, isSuperAdmin, 
                           {/* Uploader Info */}
                           <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-neutral-600">
                             <Users size={12} className="text-neutral-700" />
-                            <span>Added By: <span className="text-neutral-400">{upload.uploadedBy || 'System'}</span></span>
+                            <span>{t('Added By')}: <span className="text-neutral-400">{upload.uploadedBy || t('System')}</span></span>
                           </div>
                         </div>
                       </div>
@@ -525,18 +527,18 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose, isSuperAdmin, 
             <form onSubmit={handleAddAnnouncement} className="bg-white/5 rounded-2xl p-6 border border-white/5 space-y-4">
               <h3 className="text-sm font-black uppercase tracking-widest flex items-center gap-2">
                 <Plus size={16} className="text-accent" />
-                New Announcement
+                {t('New Announcement')}
               </h3>
               <div className="space-y-3">
                 <input
                   type="text"
-                  placeholder="Announcement Title"
+                  placeholder={t('Announcement Title')}
                   value={newTitle}
                   onChange={(e) => setNewTitle(e.target.value)}
                   className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-accent/50 transition-all"
                 />
                 <textarea
-                  placeholder="Announcement Content..."
+                  placeholder={t('Announcement Content...')}
                   value={newContent}
                   onChange={(e) => setNewContent(e.target.value)}
                   rows={3}
@@ -548,7 +550,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose, isSuperAdmin, 
                 disabled={isSubmitting}
                 className="w-full bg-accent hover:bg-accent/80 disabled:opacity-50 text-white font-black uppercase tracking-widest py-3 rounded-xl transition-all shadow-lg shadow-accent/20 flex items-center justify-center gap-2"
               >
-                {isSubmitting ? 'Posting...' : 'Post Announcement'}
+                {isSubmitting ? t('Posting...') : t('Post Announcement')}
               </button>
               
               <AnimatePresence>
@@ -569,20 +571,20 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose, isSuperAdmin, 
 
             {/* List */}
             <div className="space-y-4">
-              <h3 className="text-sm font-black uppercase tracking-widest text-neutral-500">Recent Announcements</h3>
+              <h3 className="text-sm font-black uppercase tracking-widest text-neutral-500">{t('Recent Announcements')}</h3>
               {announcements.length === 0 ? (
-                <div className="text-center py-12 text-neutral-600 italic text-sm">No announcements found.</div>
+                <div className="text-center py-12 text-neutral-600 italic text-sm">{t('No announcements found.')}</div>
               ) : (
                 announcements.map((ann) => (
                   <div key={ann.id} className="bg-white/5 border border-white/5 rounded-2xl p-5 flex items-start justify-between group hover:border-white/10 transition-all">
                     <div className="space-y-2">
                       <div className="flex items-center gap-2">
                         <h4 className="font-bold text-white">{ann.title}</h4>
-                        {!ann.active && <span className="text-[8px] font-black uppercase tracking-widest bg-neutral-800 text-neutral-400 px-1.5 py-0.5 rounded">Inactive</span>}
+                        {!ann.active && <span className="text-[8px] font-black uppercase tracking-widest bg-neutral-800 text-neutral-400 px-1.5 py-0.5 rounded">{t('Inactive')}</span>}
                       </div>
                       <p className="text-xs text-neutral-400 leading-relaxed">{ann.content}</p>
                       <p className="text-[9px] font-mono text-neutral-600">
-                        {ann.createdAt?.toDate().toLocaleString() || 'Just now'}
+                        {ann.createdAt?.toDate().toLocaleString() || t('Just now')}
                       </p>
                     </div>
                     <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all">
@@ -611,7 +613,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose, isSuperAdmin, 
         {activeTab === 'suggestions' && (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-black uppercase tracking-widest text-neutral-500">User Suggestions</h3>
+              <h3 className="text-sm font-black uppercase tracking-widest text-neutral-500">{t('User Suggestions')}</h3>
               <div className="flex gap-2">
                 {(['all', 'pending', 'reviewed'] as const).map(filter => (
                   <button
@@ -621,13 +623,13 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose, isSuperAdmin, 
                       suggestionFilter === filter ? 'bg-accent text-white' : 'bg-white/5 text-neutral-500 hover:text-white'
                     }`}
                   >
-                    {filter}
+                    {t(filter)}
                   </button>
                 ))}
               </div>
             </div>
             {suggestions.filter(s => suggestionFilter === 'all' || s.status === suggestionFilter).length === 0 ? (
-              <div className="text-center py-12 text-neutral-600 italic text-sm">No suggestions found.</div>
+              <div className="text-center py-12 text-neutral-600 italic text-sm">{t('No suggestions found.')}</div>
             ) : (
               suggestions.filter(s => suggestionFilter === 'all' || s.status === suggestionFilter).map((suggestion) => (
                 <div key={suggestion.id} className="bg-white/5 border border-white/5 rounded-2xl p-5 flex items-start justify-between group hover:border-white/10 transition-all">
@@ -637,12 +639,12 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose, isSuperAdmin, 
                       <span className={`text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded ${
                         suggestion.status === 'pending' ? 'bg-yellow-500/20 text-yellow-500' : 'bg-green-500/20 text-green-500'
                       }`}>
-                        {suggestion.status}
+                        {t(suggestion.status)}
                       </span>
                     </div>
                     <p className="text-sm text-neutral-300 leading-relaxed break-words">{suggestion.text}</p>
                     <p className="text-[9px] font-mono text-neutral-600">
-                      {suggestion.createdAt?.toDate().toLocaleString() || 'Just now'}
+                      {suggestion.createdAt?.toDate().toLocaleString() || t('Just now')}
                     </p>
                   </div>
                   <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all shrink-0">
@@ -672,24 +674,24 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose, isSuperAdmin, 
         {(isSuperAdmin || isAdmin) && activeTab === 'admins' && (
           <div className="space-y-6">
             <form onSubmit={handleAddAdmin} className="bg-white/5 border border-white/10 rounded-2xl p-6 space-y-4">
-              <h3 className="text-sm font-black uppercase tracking-widest text-accent">Add New Admin</h3>
+              <h3 className="text-sm font-black uppercase tracking-widest text-accent">{t('Add New Admin')}</h3>
               
               {error && (
                 <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center gap-2 text-red-500 text-sm">
                   <AlertCircle size={16} />
-                  {error}
+                  {t(error)}
                 </div>
               )}
               
               {success && (
                 <div className="p-3 rounded-xl bg-green-500/10 border border-green-500/20 flex items-center gap-2 text-green-500 text-sm">
                   <CheckCircle2 size={16} />
-                  {success}
+                  {t(success)}
                 </div>
               )}
 
               <div className="space-y-2">
-                <label className="text-xs font-bold text-neutral-400 uppercase tracking-wider">Email Address</label>
+                <label className="text-xs font-bold text-neutral-400 uppercase tracking-wider">{t('Email Address')}</label>
                 <input
                   type="email"
                   value={newAdminEmail}
@@ -710,7 +712,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose, isSuperAdmin, 
                 ) : (
                   <>
                     <Plus size={18} />
-                    Add Admin
+                    {t('Add Admin')}
                   </>
                 )}
               </button>
@@ -718,17 +720,17 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose, isSuperAdmin, 
 
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <h3 className="text-sm font-black uppercase tracking-widest text-neutral-500">Allowed Admins</h3>
+                <h3 className="text-sm font-black uppercase tracking-widest text-neutral-500">{t('Allowed Admins')}</h3>
                 <div className="flex gap-2">
                   <input
                     type="text"
-                    placeholder="Search admins..."
+                    placeholder={t('Search admins...')}
                     value={adminSearchQuery}
                     onChange={(e) => setAdminSearchQuery(e.target.value)}
                     className="bg-black/20 border border-white/10 rounded-xl px-4 py-2 text-sm text-white placeholder:text-neutral-600 focus:outline-none focus:border-accent/50 w-64"
                   />
                   <button onClick={handleRemoveAllAdmins} className="bg-red-500/10 text-red-500 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-red-500/20 transition-all">
-                    Remove All Admins
+                    {t('Remove All Admins')}
                   </button>
                 </div>
               </div>
@@ -737,7 +739,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose, isSuperAdmin, 
                 return !adminSearchQuery || admin.email.toLowerCase().includes(search);
               }).length === 0 ? (
                 <div className="text-center py-12 text-neutral-500 text-sm italic">
-                  {adminSearchQuery ? `No admins found matching "${adminSearchQuery}"` : "No additional admins added yet."}
+                  {adminSearchQuery ? `${t('No admins found matching')} "${adminSearchQuery}"` : t('No additional admins added yet.')}
                 </div>
               ) : (
                 allowedAdmins.filter(admin => {
@@ -748,7 +750,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose, isSuperAdmin, 
                     <div>
                       <h4 className="font-bold text-white">{admin.email}</h4>
                       <p className="text-xs text-neutral-500 mt-1">
-                        Added: {admin.createdAt?.toDate().toLocaleDateString()}
+                        {t('Added')}: {admin.createdAt?.toDate().toLocaleDateString()}
                       </p>
                     </div>
                     <button 
@@ -769,8 +771,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose, isSuperAdmin, 
             <div className="bg-white/5 border border-white/10 rounded-3xl p-8 space-y-6">
               <div className="flex items-center justify-between">
                 <div className="space-y-1">
-                  <h3 className="text-xl font-black uppercase italic tracking-tighter text-white">Maintenance Mode</h3>
-                  <p className="text-xs text-neutral-500 font-bold uppercase tracking-widest">Toggle "UPDATING!!!" Overlay</p>
+                  <h3 className="text-xl font-black uppercase italic tracking-tighter text-white">{t('Maintenance Mode')}</h3>
+                  <p className="text-xs text-neutral-500 font-bold uppercase tracking-widest">{t('Toggle \"UPDATING!!!\" Overlay')}</p>
                 </div>
                 <button
                   onClick={toggleMaintenanceMode}
@@ -787,15 +789,14 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose, isSuperAdmin, 
               
               <div className="p-4 bg-accent/5 border border-accent/10 rounded-2xl">
                 <p className="text-xs text-accent/80 leading-relaxed font-medium italic">
-                  Activating this will show a full-screen "UPDATING!!!" message to all users in real-time. 
-                  Use this before pushing updates to GitHub to ensure users know the site is being maintained.
+                  {t('Activating this will show a full-screen \"UPDATING!!!\" message to all users in real-time. Use this before pushing updates to GitHub to ensure users know the site is being maintained.')}
                 </p>
               </div>
 
               {isUpdating && (
                 <div className="flex items-center gap-3 text-accent animate-pulse">
                   <Activity size={16} />
-                  <span className="text-[10px] font-black uppercase tracking-[0.2em]">Maintenance Mode Active</span>
+                  <span className="text-[10px] font-black uppercase tracking-[0.2em]">{t('Maintenance Mode Active')}</span>
                 </div>
               )}
             </div>

@@ -2,27 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Heart, Coffee, Rocket, Server, Shield, Zap, ExternalLink, Activity, MessageSquare } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
-
-const TranslatedText: React.FC<{ text: string }> = ({ text }) => {
-  const { translateDynamic, language } = useLanguage();
-  const [translated, setTranslated] = React.useState(text);
-
-  React.useEffect(() => {
-    let isMounted = true;
-    const translate = async () => {
-      if (language === 'en-US') {
-        if (isMounted) setTranslated(text);
-        return;
-      }
-      const result = await translateDynamic(text);
-      if (isMounted) setTranslated(result);
-    };
-    translate();
-    return () => { isMounted = false; };
-  }, [text, language, translateDynamic]);
-
-  return <>{translated}</>;
-};
+import { TranslatedText } from './TranslatedText';
 
 const DonatePage: React.FC = () => {
   const { t } = useLanguage();

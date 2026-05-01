@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { db, OperationType, handleFirestoreError, isQuotaExceeded } from '../firebase';
 import { collection, query, where, getDocs, limit, onSnapshot } from 'firebase/firestore';
 import { Megaphone, X } from 'lucide-react';
+import { TranslatedText } from './TranslatedText';
 
 export const SiteAnnouncements = () => {
   const [announcements, setAnnouncements] = useState<any[]>([]);
@@ -62,8 +63,12 @@ export const SiteAnnouncements = () => {
           >
             <Megaphone className="shrink-0 mt-0.5" size={20} />
             <div className="flex-1">
-              <h4 className="font-bold text-sm uppercase tracking-wider">{ann.title}</h4>
-              <p className="text-sm text-white/90 mt-1">{ann.content}</p>
+              <h4 className="font-bold text-sm uppercase tracking-wider">
+                <TranslatedText text={ann.title} />
+              </h4>
+              <p className="text-sm text-white/90 mt-1">
+                <TranslatedText text={ann.content} />
+              </p>
             </div>
             <button 
               onClick={() => handleDismiss(ann.id)}
