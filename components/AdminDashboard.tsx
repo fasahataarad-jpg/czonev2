@@ -57,7 +57,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose, isSuperAdmin, 
 
   const handleUpload = async () => {
     if (!uploadTitle || !driveLink || !imageLink) {
-      setError('Please provide a title, a content link, and a thumbnail image link.');
+      setError(t('Please provide a title, a content link, and a thumbnail image link.'));
       return;
     }
     setIsSubmitting(true);
@@ -66,7 +66,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose, isSuperAdmin, 
     
     try {
       if (isQuotaExceeded) {
-        throw new Error('Database quota exceeded. Please try again later.');
+        throw new Error(t('Database quota exceeded. Please try again later.'));
       }
       
       await addDoc(collection(db, 'uploads'), {
@@ -78,14 +78,14 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose, isSuperAdmin, 
         createdAt: serverTimestamp()
       });
 
-      setUploadSuccess('Content added successfully!');
+      setUploadSuccess(t('Content added successfully!'));
       setUploadTitle('');
       setImageLink('');
       setDriveLink('');
       if (fileInputRef.current) fileInputRef.current.value = '';
       setTimeout(() => setUploadSuccess(''), 3000);
     } catch (err) {
-      setError('Failed to log content to Firestore.');
+      setError(t('Failed to log content to Firestore.'));
       console.error(err);
       handleFirestoreError(err, OperationType.WRITE, 'uploads');
     } finally {
@@ -196,7 +196,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose, isSuperAdmin, 
   const handleAddAnnouncement = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTitle.trim() || !newContent.trim()) {
-      setError('Please provide both an announcement title and content.');
+      setError(t('Please provide both an announcement title and content.'));
       return;
     }
 
@@ -214,11 +214,11 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose, isSuperAdmin, 
       });
       setNewTitle('');
       setNewContent('');
-      setSuccess('Announcement posted successfully!');
+      setSuccess(t('Announcement posted successfully!'));
       setTimeout(() => setSuccess(null), 3000);
     } catch (err) {
       console.error(err);
-      setError('Failed to post announcement.');
+      setError(t('Failed to post announcement.'));
     } finally {
       setIsSubmitting(false);
     }
@@ -247,11 +247,11 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose, isSuperAdmin, 
         createdAt: serverTimestamp()
       });
       setNewAdminEmail('');
-      setSuccess('Admin added successfully!');
+      setSuccess(t('Admin added successfully!'));
       setTimeout(() => setSuccess(null), 3000);
     } catch (err) {
       console.error(err);
-      setError('Failed to add admin.');
+      setError(t('Failed to add admin.'));
     } finally {
       setIsSubmitting(false);
     }
@@ -266,32 +266,32 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose, isSuperAdmin, 
   };
 
   const handleRemoveAllAdmins = async () => {
-    if (!window.confirm('Are you sure you want to remove ALL admins? This cannot be undone.')) return;
+    if (!window.confirm(t('Are you sure you want to remove ALL admins? This cannot be undone.'))) return;
     try {
       for (const admin of allowedAdmins) {
           await deleteDoc(doc(db, 'allowed_admins', admin.id));
       }
-      setSuccess('All admins removed successfully!');
+      setSuccess(t('All admins removed successfully!'));
       setTimeout(() => setSuccess(null), 3000);
     } catch (err) {
       console.error(err);
-      setError('Failed to remove all admins.');
+      setError(t('Failed to remove all admins.'));
     }
   };
 
   const handleDeleteUpload = async (id: string) => {
-    if (!window.confirm('Are you sure you want to delete this content?')) return;
+    if (!window.confirm(t('Are you sure you want to delete this content?'))) return;
     try {
       if (isQuotaExceeded) {
-        setError('Database quota exceeded.');
+        setError(t('Database quota exceeded.'));
         return;
       }
       await deleteDoc(doc(db, 'uploads', id));
-      setSuccess('Content deleted successfully!');
+      setSuccess(t('Content deleted successfully!'));
       setTimeout(() => setSuccess(null), 3000);
     } catch (err) {
       console.error(err);
-      setError('Failed to delete content.');
+      setError(t('Failed to delete content.'));
       handleFirestoreError(err, OperationType.DELETE, `uploads/${id}`);
     }
   };
@@ -332,11 +332,11 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose, isSuperAdmin, 
       }, { merge: true });
       
       setIsUpdating(nextStatus);
-      setSuccess(`Maintenance mode ${nextStatus ? 'activated' : 'deactivated'}!`);
+      setSuccess(t('Maintenance mode {status}!').replace('{status}', nextStatus ? t('activated') : t('deactivated')));
       setTimeout(() => setSuccess(null), 3000);
     } catch (err) {
       console.error(err);
-      setError('Failed to toggle maintenance mode.');
+      setError(t('Failed to toggle maintenance mode.'));
     }
   };
 
@@ -364,7 +364,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose, isSuperAdmin, 
       {false && (
          <div className="p-4 bg-red-500/10 border border-red-500/20 text-red-400 m-6 rounded-xl flex items-center gap-3">
            <AlertCircle size={20} />
-           <span>Firestore quota exceeded. Real-time data updates and some administrative actions are currently unavailable.</span>
+           <span>{t('Firestore quota exceeded. Real-time data updates and some administrative actions are currently unavailable.')}</span>
          </div>
       )}
 
@@ -825,6 +825,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose, isSuperAdmin, 
 };
 
 const AnalyticsTab = () => {
+    const { t } = useLanguage();
     const [data, setData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -855,12 +856,12 @@ const AnalyticsTab = () => {
             });
     }, []);
 
-    if (loading) return <div className="p-6 text-center text-neutral-500">Loading analytics...</div>;
-    if (error) return <div className="p-6 text-center text-red-500">{error}</div>;
+    if (loading) return <div className="p-6 text-center text-neutral-500">{t('Loading analytics...')}</div>;
+    if (error) return <div className="p-6 text-center text-red-500">{t(error)}</div>;
 
     return (
         <div className="p-6 bg-white/5 rounded-2xl border border-white/5">
-            <h3 className="text-sm font-black uppercase tracking-widest text-neutral-500 mb-6">Active Users (Last 30 Days)</h3>
+            <h3 className="text-sm font-black uppercase tracking-widest text-neutral-500 mb-6">{t('Active Users (Last 30 Days)')}</h3>
             <div className="h-[300px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={data}>

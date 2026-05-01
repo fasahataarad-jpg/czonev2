@@ -24,6 +24,7 @@ const itemVariants: Variants = {
 };
 
 const Home: React.FC<HomeProps> = ({ onNavigate, onSearch }) => {
+  const { t } = useLanguage();
   const [query, setQuery] = useState('');
 
   const handleSearch = (e: React.FormEvent) => {
@@ -36,33 +37,33 @@ const Home: React.FC<HomeProps> = ({ onNavigate, onSearch }) => {
 
   const sections = [
     {
-      title: "Welcome to Monochrome!",
-      desc: "Browse the web freely. Let's show you around.",
+      title: t("Welcome to Monochrome!"),
+      desc: t("Browse the web freely. Let's show you around."),
       icon: <Globe className="text-accent" size={32} />,
     },
     {
-      title: "Search Anything",
-      desc: "Type a URL or search query into the address bar at the top.",
+      title: t("Search Anything"),
+      desc: t("Type a URL or search query into the address bar at the top."),
       icon: <Search className="text-accent" size={32} />,
     },
     {
-      title: "Tabs",
-      desc: "Open tabs using the + button at the top.",
+      title: t("Tabs"),
+      desc: t("Open tabs using the + button at the top."),
       icon: <LayoutGrid className="text-accent" size={32} />,
     },
     {
-      title: "Bookmarks",
-      desc: "Click the star icon at the top to bookmark a page.",
+      title: t("Bookmarks"),
+      desc: t("Click the star icon at the top to bookmark a page."),
       icon: <Shield className="text-accent" size={32} />,
     },
     {
-      title: "Offline Mode",
-      desc: "Use the site online at least once to use the site offline.",
+      title: t("Offline Mode"),
+      desc: t("Use the site online at least once to use the site offline."),
       icon: <WifiOff className="text-accent" size={32} />,
     },
     {
-      title: "Tab Cloaking",
-      desc: "In the settings, click 'Cloak' to disguise the tab into an about:blank page!",
+      title: t("Tab Cloaking"),
+      desc: t("In the settings, click 'Cloak' to disguise the tab into an about:blank page!"),
       icon: <Shield className="text-accent" size={32} />,
     }
   ];
@@ -96,7 +97,7 @@ const Home: React.FC<HomeProps> = ({ onNavigate, onSearch }) => {
               type="text" 
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search Anything..."
+              placeholder={t("Search Anything...")}
               className="w-full bg-surface-hover/50 border border-white/10 rounded-[2rem] py-6 px-8 pl-16 text-white text-lg focus:outline-none focus:ring-2 focus:ring-accent/50 transition-all placeholder:text-text-muted group-hover:border-white/20"
             />
             <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-text-secondary w-6 h-6 group-focus-within:text-accent transition-colors" />
@@ -109,7 +110,7 @@ const Home: React.FC<HomeProps> = ({ onNavigate, onSearch }) => {
           transition={{ delay: 0.4, duration: 0.5 }}
           className="text-text-secondary text-sm font-medium tracking-[0.3em] uppercase pt-4"
         >
-          Browse without boundaries
+          {t('Browse without boundaries')}
         </motion.p>
       </div>
 
@@ -144,8 +145,8 @@ const Home: React.FC<HomeProps> = ({ onNavigate, onSearch }) => {
         className="pt-20 text-center space-y-12"
       >
         <div className="space-y-4">
-          <h2 className="text-4xl font-display uppercase tracking-tight text-white italic">Our <span className="text-accent">Partners</span></h2>
-          <p className="text-text-secondary font-medium">Trusted allies in the decentralized web.</p>
+          <h2 className="text-4xl font-display uppercase tracking-tight text-white italic">{t('Our')} <span className="text-accent">{t('Partners')}</span></h2>
+          <p className="text-text-secondary font-medium">{t('Trusted allies in the decentralized web.')}</p>
         </div>
         
         <div className="flex flex-wrap justify-center gap-8">
@@ -168,7 +169,7 @@ const Home: React.FC<HomeProps> = ({ onNavigate, onSearch }) => {
         </div>
 
         <p className="text-text-muted text-[10px] font-black uppercase tracking-[0.5em] pt-20">
-          Secure Archive Access Protocol v2.4.0
+          {t('Secure Archive Access Protocol v2.4.0')}
         </p>
       </motion.div>
     </motion.div>

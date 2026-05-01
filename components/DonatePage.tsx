@@ -10,23 +10,23 @@ const DonatePage: React.FC = () => {
   const benefits = [
     {
       icon: <Server className="text-accent" size={24} />,
-      title: "Server Infrastructure",
-      desc: "Keeping the high-speed servers running 24/7 for a lag-free experience."
+      title: t("Server Infrastructure"),
+      desc: t("Keeping the high-speed servers running 24/7 for a lag-free experience.")
     },
     {
       icon: <Rocket className="text-accent" size={24} />,
-      title: "Faster Updates",
-      desc: "More resources mean we can pull and upload your favorite content faster."
+      title: t("Faster Updates"),
+      desc: t("More resources mean we can pull and upload your favorite content faster.")
     },
     {
       icon: <Shield className="text-accent" size={24} />,
-      title: "Security & Stability",
-      desc: "Protecting the site from attacks and ensuring a safe browsing zone."
+      title: t("Security & Stability"),
+      desc: t("Protecting the site from attacks and ensuring a safe browsing zone.")
     },
     {
       icon: <Zap className="text-accent" size={24} />,
-      title: "New Features",
-      desc: "Funding for custom tools, better proxies, and advanced media players."
+      title: t("New Features"),
+      desc: t("Funding for custom tools, better proxies, and advanced media players.")
     }
   ];
 

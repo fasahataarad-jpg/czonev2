@@ -501,7 +501,7 @@ const App: React.FC = () => {
             >
                 {isSidebarVisible ? <X size={20} /> : <LayoutGrid size={20} />}
             </button>
-            <div className="text-xs text-text-secondary">© 2026 ChillZone</div>
+            <div className="text-xs text-text-secondary">© 2026 {t('ChillZone')}</div>
         </div>
 
         {!isAuthModalOpen && !isAdminOpen && (
@@ -589,7 +589,7 @@ const App: React.FC = () => {
                   whileTap={{ scale: 0.95 }}
                   onClick={() => setIsSuggestionModalOpen(true)}
                   className="w-10 h-10 flex items-center justify-center rounded-xl bg-surface-hover border border-white/5 text-text-secondary hover:text-white hover:border-white/20 transition-all duration-300"
-                  title="Suggestion Bin"
+                  title={t('Suggestion Bin')}
                 >
                   <Send size={18} />
                 </motion.button>
@@ -605,7 +605,7 @@ const App: React.FC = () => {
                       ? 'bg-accent border-accent text-white' 
                       : 'bg-surface-hover border-white/5 text-text-secondary hover:text-white hover:border-white/20'
                   }`}
-                  title="Update Log"
+                  title={t('Update Log')}
                 >
                   <GitCommit size={18} />
                 </motion.button>
@@ -634,7 +634,7 @@ const App: React.FC = () => {
                 whileTap={{ scale: 0.95 }}
                 onClick={user ? logout : () => setIsAuthModalOpen(true)}
                 className="w-10 h-10 flex items-center justify-center rounded-xl bg-surface-hover border border-white/5 text-text-secondary hover:text-white hover:border-white/20 transition-all duration-300"
-                title={user ? "Logout" : "Login / Sign Up"}
+                title={user ? t("Logout") : t("Login / Sign Up")}
               >
                 {user ? <LogOut size={18} /> : <LogIn size={18} />}
               </motion.button>
@@ -646,7 +646,7 @@ const App: React.FC = () => {
                 target="_blank" 
                 rel="noopener noreferrer" 
                 className="w-10 h-10 flex items-center justify-center rounded-xl bg-surface-hover border border-white/5 text-text-secondary hover:text-[#5865F2] hover:border-[#5865F2]/50 transition-all duration-300 relative"
-                title="Discord"
+                title={t('Discord')}
               >
                 <DiscordIcon size={18} />
               </motion.a>
@@ -698,7 +698,7 @@ const App: React.FC = () => {
                         className="flex flex-col items-center justify-center py-40 text-center opacity-40"
                       >
                         <SearchX size={80} className="mb-6 text-accent" />
-                        <h2 className="text-2xl font-black uppercase tracking-widest italic mb-2 text-white">No matches</h2>
+                        <h2 className="text-2xl font-black uppercase tracking-widest italic mb-2 text-white">{t('No matches')}</h2>
                       </motion.div>
                    )}
                 </motion.div>

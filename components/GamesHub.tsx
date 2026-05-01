@@ -1,7 +1,10 @@
 import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { useLanguage } from '../context/LanguageContext';
 
 export function GamesHub() {
+  const { t } = useLanguage();
+
   useEffect(() => {
     let gmesData: any[] = [];
 
@@ -18,7 +21,7 @@ export function GamesHub() {
       }
 
       const FILTER_OPTIMIZE_ON = (import.meta as any).env.PUBLIC_FILTER_OPTIMIZE === "true";
-      const gmes_text = FILTER_OPTIMIZE_ON ? "gᾰmes" : "games";
+      const gmes_text = FILTER_OPTIMIZE_ON ? "gᾰmes" : t("games");
 
       const target = document.querySelector("#gmeContainer");
       const searchInput = document.getElementById("search") as HTMLInputElement;
@@ -31,7 +34,7 @@ export function GamesHub() {
       let currentFilteredGmes: any[] = [];
       let observer: IntersectionObserver | null = null;
 
-      searchInput.placeholder = `Search from ${gmesData.length} ${gmes_text}`;
+      searchInput.placeholder = t(`Search from {count} {text}`).replace('{count}', gmesData.length.toString()).replace('{text}', gmes_text);
 
       const popularGmes = [
         "Hollow Knight", "ULTRAKILL", "Celeste", "Katana ZERO", "Dead Cells",
@@ -63,7 +66,7 @@ export function GamesHub() {
           : null;
         const thumb_html = thumb_url
           ? `<img src="${thumb_url}" alt="${gme.title}" class="w-full h-full object-cover rounded-lg transition-transform duration-300 group-hover:scale-110" loading="lazy"/>`
-          : `<div class="w-full h-full rounded-lg bg-surface-800 flex items-center justify-center"><p class="text-text-500">No Image</p></div>`;
+          : `<div class="w-full h-full rounded-lg bg-surface-800 flex items-center justify-center"><p class="text-text-500">${t('No Image')}</p></div>`;
 
         return `
           <div
@@ -85,7 +88,7 @@ export function GamesHub() {
         const batch = currentFilteredGmes.slice(startIndex, endIndex);
 
         if (batch.length === 0 && currentPage === 1) {
-          target.innerHTML = `<p style='text-align: center; padding: 20px;'>No ${gmes_text} found.</p>`;
+          target.innerHTML = `<p style='text-align: center; padding: 20px;'>${t('No {text} found.').replace('{text}', gmes_text)}</p>`;
           return;
         }
 
@@ -217,7 +220,7 @@ export function GamesHub() {
     };
 
     init();
-  }, []);
+  }, [t]);
 
   return (
     <motion.div  
@@ -226,14 +229,14 @@ export function GamesHub() {
       className="min-h-screen bg-[#0a0a0a] p-8"
     >
       <div className="max-w-7xl mx-auto">
-        <input id="search" className="w-full p-4 mb-4 bg-white/5 border border-white/10 text-white rounded-2xl" placeholder="Search..." />
+        <input id="search" className="w-full p-4 mb-4 bg-white/5 border border-white/10 text-white rounded-2xl" placeholder={t("Search...")} />
         <div id="gmeContainer"></div>
         
         <div id="gmePageContainer" className="hidden fixed inset-0 z-[200] bg-black flex flex-col">
           <div className="flex justify-between p-4 bg-black/80">
-            <button id="backBtn" className="text-white font-bold uppercase">Back</button>
+            <button id="backBtn" className="text-white font-bold uppercase">{t('Back')}</button>
             <h1 id="gmePageTitle" className="text-white font-bold"></h1>
-            <button id="fullscreenBtn" className="text-white font-bold uppercase">Fullscreen</button>
+            <button id="fullscreenBtn" className="text-white font-bold uppercase">{t('Fullscreen')}</button>
           </div>
           <iframe id="gmePageFrame" className="w-full h-full border-none" />
         </div>
