@@ -1150,7 +1150,7 @@ const App: React.FC = () => {
                           rel="noopener noreferrer"
                           className="w-full py-5 rounded-[2rem] font-black flex items-center justify-center gap-4 text-xs tracking-[0.4em] uppercase italic transition-all duration-500 shadow-xl bg-accent text-white hover:bg-accent/90"
                         >
-                          <PlayCircle size={20} /> 
+                          {selectedItem.category === 'manga' ? <Book size={20} /> : <PlayCircle size={20} />} 
                           {link.part}
                         </motion.a>
                       ))}
@@ -1164,8 +1164,8 @@ const App: React.FC = () => {
                       rel="noopener noreferrer"
                       className={`w-full py-7 rounded-[2.5rem] font-black flex items-center justify-center gap-4 text-xs tracking-[0.4em] uppercase italic transition-all duration-500 shadow-2xl ${isSearchLink ? 'bg-surface-active text-text-muted hover:bg-surface-hover hover:text-white border border-white/10' : 'bg-accent text-white hover:bg-accent/90'}`}
                     >
-                      {isSearchLink ? <Search size={24} /> : <PlayCircle size={24} />} 
-                      {isSearchLink ? t('SEARCH ARCHIVE') : <><TranslatedText text="Watch:" /> <TranslatedText text={selectedItem.item.t} /></>}
+                      {isSearchLink ? <Search size={24} /> : (selectedItem.category === 'manga' ? <Book size={24} /> : <PlayCircle size={24} />)} 
+                      {isSearchLink ? t('SEARCH ARCHIVE') : <><TranslatedText text={selectedItem.category === 'manga' ? "Read:" : "Watch:"} /> <TranslatedText text={selectedItem.item.t} /></>}
                     </motion.a>
                   )}
                   {isSearchLink && (

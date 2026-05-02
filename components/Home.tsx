@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion, Variants } from 'framer-motion';
 import { Search, Globe, LayoutGrid, WifiOff, Shield } from 'lucide-react';
 import { Category } from '../types';
+import { useLanguage } from '../context/LanguageContext';
 
 interface HomeProps {
   onNavigate: (category: Category) => void;
