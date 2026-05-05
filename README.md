@@ -6,7 +6,7 @@
   **Your all-in-one entertainment hub.**
   
   [![Live Site](https://img.shields.io/badge/Live%20Site-chillz0ne.dev-ff2644?style=for-the-badge)](https://chillz0ne.dev)
-  [![Discord](https://img.shields.io/badge/Discord-Join-5865F2?style=for-the-badge&logo=discord)](http://discord.gg/cuHARsXESW)
+  [![Discord](https://img.shields.io/badge/Discord-Join-5865F2?style=for-the-badge&logo=discord)](https://discord.gg/czone)
 </div>
 
 ---

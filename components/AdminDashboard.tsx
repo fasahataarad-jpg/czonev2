@@ -100,9 +100,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose, isSuperAdmin, 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'announcements' | 'suggestions' | 'admins' | 'analytics' | 'upload' | 'manage_uploads' | 'system'>('announcements');
+  const [activeTab, setActiveTab] = useState<'announcements' | 'suggestions' | 'admins' | 'analytics' | 'upload' | 'manage_uploads'>('announcements');
   const [isLoading, setIsLoading] = useState(false);
-  const [isUpdating, setIsUpdating] = useState(false);
   const [suggestionFilter, setSuggestionFilter] = useState<'all' | 'pending' | 'reviewed'>('all');
   const [adminSearchQuery, setAdminSearchQuery] = useState('');
 
@@ -140,20 +139,11 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose, isSuperAdmin, 
     });
     unsubsRef.current.admins = unsubAdmins;
 
-    // Firestore - System Status
-    const unsubSystem = onSnapshot(doc(db, 'system', 'status'), (snapshot) => {
-      if (snapshot.exists()) {
-        setIsUpdating(snapshot.data().updating === true);
-      }
-    });
-    unsubsRef.current.system = unsubSystem;
-
     // Cleanup
     return () => {
       unsubsRef.current.announcements?.();
       unsubsRef.current.suggestions?.();
       unsubsRef.current.admins?.();
-      unsubsRef.current.system?.();
       unsubsRef.current.uploads?.();
     };
   }, [activeTab]);
@@ -178,7 +168,6 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose, isSuperAdmin, 
         case 'announcements': return announcements.length > 0;
         case 'suggestions': return suggestions.length > 0;
         case 'admins': return allowedAdmins.length > 0;
-        case 'system': return true; // System status is usually very fast
         default: return false;
       }
     };
@@ -320,26 +309,6 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose, isSuperAdmin, 
     }
   };
 
-      // Role management and admin management functions disabled as they rely on Firestore.
-
-  const toggleMaintenanceMode = async () => {
-    const nextStatus = !isUpdating;
-    try {
-      await setDoc(doc(db, 'system', 'status'), {
-        updating: nextStatus,
-        updatedAt: serverTimestamp(),
-        updatedBy: auth.currentUser?.uid
-      }, { merge: true });
-      
-      setIsUpdating(nextStatus);
-      setSuccess(t('Maintenance mode {status}!').replace('{status}', nextStatus ? t('activated') : t('deactivated')));
-      setTimeout(() => setSuccess(null), 3000);
-    } catch (err) {
-      console.error(err);
-      setError(t('Failed to toggle maintenance mode.'));
-    }
-  };
-
   return (
     <div className="flex flex-col h-full bg-[#0a0a0a] text-white">
       {/* Header */}
@@ -376,7 +345,6 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose, isSuperAdmin, 
           { id: 'analytics', icon: Activity, label: t('Analytics') },
           { id: 'upload', icon: Upload, label: t('Upload') },
           { id: 'manage_uploads', icon: Database, label: t('Manage Uploads') },
-          { id: 'system', icon: SettingsIcon, label: t('System') },
           ...(isSuperAdmin || isAdmin ? [
             { id: 'admins', icon: ShieldCheck, label: t('Manage Admins') }
           ] : [])
@@ -764,57 +732,6 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose, isSuperAdmin, 
                 ))
               )}
             </div>
-          </div>
-        )}
-        {!isLoading && activeTab === 'system' && (
-          <div className="p-6 space-y-8">
-            <div className="bg-white/5 border border-white/10 rounded-3xl p-8 space-y-6">
-              <div className="flex items-center justify-between">
-                <div className="space-y-1">
-                  <h3 className="text-xl font-black uppercase italic tracking-tighter text-white">{t('Maintenance Mode')}</h3>
-                  <p className="text-xs text-neutral-500 font-bold uppercase tracking-widest">{t('Toggle \"UPDATING!!!\" Overlay')}</p>
-                </div>
-                <button
-                  onClick={toggleMaintenanceMode}
-                  className={`relative w-16 h-8 rounded-full transition-all duration-500 ${
-                    isUpdating ? 'bg-accent shadow-[0_0_20px_rgba(var(--accent-rgb),0.3)]' : 'bg-neutral-800'
-                  }`}
-                >
-                  <motion.div
-                    animate={{ x: isUpdating ? 36 : 4 }}
-                    className="absolute top-1 w-6 h-6 bg-white rounded-full shadow-lg"
-                  />
-                </button>
-              </div>
-              
-              <div className="p-4 bg-accent/5 border border-accent/10 rounded-2xl">
-                <p className="text-xs text-accent/80 leading-relaxed font-medium italic">
-                  {t('Activating this will show a full-screen \"UPDATING!!!\" message to all users in real-time. Use this before pushing updates to GitHub to ensure users know the site is being maintained.')}
-                </p>
-              </div>
-
-              {isUpdating && (
-                <div className="flex items-center gap-3 text-accent animate-pulse">
-                  <Activity size={16} />
-                  <span className="text-[10px] font-black uppercase tracking-[0.2em]">{t('Maintenance Mode Active')}</span>
-                </div>
-              )}
-            </div>
-
-            <AnimatePresence>
-              {error && (
-                <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="flex items-center gap-2 text-red-500 text-xs font-bold bg-red-500/10 p-4 rounded-2xl border border-red-500/20">
-                  <AlertCircle size={14} />
-                  {error}
-                </motion.div>
-              )}
-              {success && (
-                <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="flex items-center gap-2 text-green-500 text-xs font-bold bg-green-500/10 p-4 rounded-2xl border border-green-500/20">
-                  <CheckCircle2 size={14} />
-                  {success}
-                </motion.div>
-              )}
-            </AnimatePresence>
           </div>
         )}
 

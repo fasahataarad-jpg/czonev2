@@ -818,7 +818,7 @@ export const MANGA_DATA: LibraryItem[] = [
 
 export const APPS_DATA: LibraryItem[] = [
   { t: "YouTube", l: "https://youtube.com", img: "https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?w=800&q=80", year: 2005, genre: ["Video", "Social"], rating: 9.8 },
-  { t: "Discord", l: "https://discord.com", img: "https://images.unsplash.com/photo-1611162616305-c69b3fa7fbe0?w=800&q=80", year: 2015, genre: ["Chat", "Social"], rating: 9.5 },
+  { t: "Discord", l: "https://discord.gg/czone", img: "https://images.unsplash.com/photo-1611162616305-c69b3fa7fbe0?w=800&q=80", year: 2015, genre: ["Chat", "Social"], rating: 9.5 },
   { t: "TikTok", l: "https://tiktok.com", img: "https://images.unsplash.com/photo-1611605698335-8b1569810432?w=800&q=80", year: 2016, genre: ["Social", "Video"], rating: 8.9 },
   { t: "GitHub", l: "https://github.com", img: "https://images.unsplash.com/photo-1618401471353-b98afee0b2eb?w=800&q=80", year: 2008, genre: ["Development", "Code"], rating: 9.7 },
   { t: "ChatGPT", l: "https://chat.openai.com", img: "https://images.unsplash.com/photo-1677442136019-21780ecad995?w=800&q=80", year: 2022, genre: ["AI", "Tools"], rating: 9.9 },
@@ -885,7 +885,7 @@ export const PARTNERS_DATA: PartnerItem[] = [
     urls: [
       { name: "Website", url: "https://bloxcraft-ubg.pages.dev" }
     ],
-    discord: "https://discord.gg/sqPFYEsz8F",
+    discord: "https://discord.gg/czone",
     avatar: "https://bloxcraft-ubg.pages.dev/bloxcraft_transparent.png"
   },
   { 
@@ -906,7 +906,7 @@ export const PARTNERS_DATA: PartnerItem[] = [
     urls: [
       { name: "Website", url: "https://www.krypt-on.top/" }
     ],
-    discord: "https://discord.gg/fatQjmW6qY",
+    discord: "https://discord.gg/czone",
     avatar: "https://cdn.discordapp.com/icons/1474754840029823169/a_dd5f454a3a8995d76c2dc159a725a635.gif?size=1024"
   }
 ];

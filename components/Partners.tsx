@@ -48,9 +48,7 @@ const Partners: React.FC = () => {
             <h1 className="text-5xl md:text-7xl font-black italic uppercase tracking-tighter mb-6 text-transparent bg-clip-text bg-gradient-to-b from-white to-white/40 drop-shadow-2xl">
               <TranslatedText text="Chillzone Partners" />
             </h1>
-            <p className="text-text-secondary text-lg max-w-2xl font-medium">
-              <TranslatedText text="Discover the incredible creators, communities, and projects we collaborate with to bring you the best experience." />
-            </p>
+
           </motion.div>
 
           {/* Grid */}

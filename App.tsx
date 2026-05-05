@@ -22,7 +22,6 @@ import StaffPage from './components/StaffPage';
 import GamesEmbed from './components/GamesEmbed';
 import MusicPlayer from './components/MusicPlayer';
 import { SiteAnnouncements } from './components/SiteAnnouncements';
-import { UpdateOverlay } from './components/UpdateOverlay';
 import { ChillZoneLogo } from './components/ChillZoneLogo';
 import { TranslatedText } from './components/TranslatedText';
 import { Search, X, Film, Sparkles, BookOpen, Tv, SearchX, PlayCircle, Star, Globe, Users, ExternalLink, ShieldAlert, Zap, Activity, Loader2, Book, AlertTriangle, Settings as SettingsIcon, GitCommit, ChevronDown, LayoutGrid, Gamepad2, ShieldCheck, LogOut, LogIn, Send, Music, MessageSquare } from 'lucide-react';
@@ -106,13 +105,14 @@ const ScrambleEffect: React.FC = () => {
 
 const getInitialCategory = (): Category => {
   const path = window.location.pathname.substring(1).toLowerCase();
+  if (!path) return 'donate';
   const normalizedPath = path.replace('-', ' ') as Category;
   const validCategories: Category[] = ['home', 'movies', 'tv shows', 'anime', 'manga', 'proxies', 'partners', 'dev', 'support', 'donate', 'apps', 'browser', 'settings', 'games', 'socials'];
   
   if (validCategories.includes(normalizedPath)) {
     return normalizedPath;
   }
-  return 'home';
+  return 'donate';
 };
 
 const App: React.FC = () => {
@@ -125,7 +125,7 @@ const App: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [proxySearch, setProxySearch] = useState('');
   const [customLogo, setCustomLogo] = useState<string>(DEFAULT_LOGO);
-  const [isIntroDone, setIsIntroDone] = useState(false);
+  const [isIntroDone, setIsIntroDone] = useState(true);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -135,7 +135,12 @@ const App: React.FC = () => {
 
   const navigate = (cat: Category) => {
     setActiveCategory(cat);
-    const path = cat === 'home' ? '/' : '/' + cat.replace(' ', '-');
+    let path = '';
+    if (cat === 'donate') {
+      path = '/';
+    } else {
+      path = '/' + cat.replace(' ', '-');
+    }
     window.history.pushState({}, '', path);
   };
 
@@ -191,9 +196,7 @@ const App: React.FC = () => {
     // Redirect to root if on root path to ensure home is selected, 
     // or handle specific defaults if necessary.
     if (path === '') {
-      if (activeCategory !== 'home') {
-        navigate('home');
-      }
+      // No forced redirect here, let initial state or user selection stay
     }
   }, [user, isAuthReady]);
 
@@ -320,13 +323,17 @@ const App: React.FC = () => {
   useEffect(() => {
     const handlePopState = () => {
       const path = window.location.pathname.substring(1).toLowerCase();
+      if (!path) {
+        setActiveCategory('donate');
+        return;
+      }
       const normalizedPath = path.replace('-', ' ') as Category;
       const validCategories: Category[] = ['home', 'movies', 'tv shows', 'anime', 'manga', 'music', 'proxies', 'partners', 'dev', 'support', 'donate', 'apps', 'browser', 'settings', 'games', 'socials'];
       
       if (validCategories.includes(normalizedPath)) {
         setActiveCategory(normalizedPath);
       } else {
-        setActiveCategory('home');
+        setActiveCategory('donate');
       }
     };
     window.addEventListener('popstate', handlePopState);
@@ -440,36 +447,6 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-bg text-text-primary">
-      <AnimatePresence>
-        {!isIntroDone && (
-          <motion.div
-            initial={{ opacity: 1 }}
-            exit={{ opacity: 0, scale: 1.1 }}
-            transition={{ duration: 0.8, ease: "easeInOut" }}
-            className="fixed inset-0 z-[9999] bg-bg flex items-center justify-center flex-col"
-          >
-            <motion.div
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ duration: 1, type: "spring" }}
-            >
-              <ChillZoneLogo size={240} />
-            </motion.div>
-            
-            <motion.button
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1, duration: 0.8 }}
-              onClick={() => setIsIntroDone(true)}
-              className="mt-12 px-10 py-3 bg-white/5 hover:bg-accent border border-white/10 hover:border-accent/50 text-white font-black rounded-full transition-all duration-300 uppercase tracking-widest shadow-lg hover:shadow-accent/20"
-            >
-              Enter
-            </motion.button>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <UpdateOverlay />
       <ScrambleEffect />
       <SiteAnnouncements />
       <div id="app" className="fixed inset-0 flex flex-col overflow-hidden bg-bg text-text-primary">
@@ -642,7 +619,7 @@ const App: React.FC = () => {
               <motion.a 
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                href="http://discord.gg/cuHARsXESW" 
+                href="https://discord.gg/czone" 
                 target="_blank" 
                 rel="noopener noreferrer" 
                 className="w-10 h-10 flex items-center justify-center rounded-xl bg-surface-hover border border-white/5 text-text-secondary hover:text-[#5865F2] hover:border-[#5865F2]/50 transition-all duration-300 relative"
@@ -749,7 +726,7 @@ const App: React.FC = () => {
                                 {t('Meet Team')} <Users size={18} />
                               </motion.button>
                               <motion.a
-                                href="https://discord.gg/cuHARsXESW"
+                                href="https://discord.gg/czone"
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 whileHover={{ scale: 1.05, boxShadow: "0 0 40px rgba(88,101,242,0.4)" }}
@@ -780,14 +757,14 @@ const App: React.FC = () => {
                             </p>
                           </div>
                           <motion.a
-                            href="https://discord.gg/cuHARsXESW"
+                            href="https://discord.gg/czone"
                             target="_blank"
                             rel="noopener noreferrer"
                             whileHover={{ scale: 1.05, rotate: 2 }}
                             whileTap={{ scale: 0.95 }}
                             className="relative z-10 shrink-0 bg-[#5865F2] hover:bg-[#4752C4] text-white px-12 py-6 rounded-[24px] font-black uppercase tracking-widest text-lg italic transition-colors shadow-[0_0_40px_rgba(88,101,242,0.3)] flex items-center gap-4"
                           >
-                            <span><TranslatedText text="Connect Now" /></span>
+                            <span><TranslatedText text="Join?" /></span>
                             <MessageSquare size={24} />
                           </motion.a>
                         </motion.div>
@@ -838,14 +815,6 @@ const App: React.FC = () => {
                             />
                           )}
 
-                          <LibrarySection 
-                              title={t('New Releases')} 
-                              items={MOVIES_DATA.slice(0, 10)} 
-                              category="movie" 
-                              searchQuery="" 
-                              onOpenDetails={handleOpenDetails} 
-                              showSearch={false} 
-                          />
                         </div>
 
                         {/* Featured Staff Section */}
@@ -853,7 +822,7 @@ const App: React.FC = () => {
                            <div className="flex flex-col md:flex-row items-center justify-between mb-16 gap-8">
                               <div className="text-left">
                                 <h2 className="text-5xl font-black uppercase italic text-white tracking-tighter mb-4">{t('Lead Team')}</h2>
-                                <p className="text-text-secondary font-bold uppercase tracking-widest text-xs">{t('The creators behind the vision')}</p>
+
                               </div>
                               <motion.button 
                                 whileHover={{ x: 10 }}

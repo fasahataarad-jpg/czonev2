@@ -9,11 +9,6 @@ const DonatePage: React.FC = () => {
 
   const benefits = [
     {
-      icon: <Server className="text-accent" size={24} />,
-      title: t("Server Infrastructure"),
-      desc: t("Keeping the high-speed servers running 24/7 for a lag-free experience.")
-    },
-    {
       icon: <Rocket className="text-accent" size={24} />,
       title: t("Faster Updates"),
       desc: t("More resources mean we can pull and upload your favorite content faster.")
@@ -37,39 +32,38 @@ const DonatePage: React.FC = () => {
       <div className="absolute bottom-10 right-1/4 w-64 h-64 bg-accent/10 rounded-full blur-[100px] -z-10"></div>
 
       <section className="bg-surface/50 backdrop-blur-xl rounded-[48px] p-8 md:p-20 border border-border/50 text-center relative overflow-hidden shadow-2xl">
-        {/* Massive Backdrop Text */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 select-none pointer-events-none opacity-[0.03] whitespace-nowrap overflow-hidden w-full h-full flex items-center justify-center">
-            <span className="text-[20vw] font-black italic uppercase tracking-tighter">SUPPORT THE ZONE</span>
-        </div>
-
         <div className="relative z-10">
           <motion.div 
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
+            initial={{ scale: 0, rotate: -20 }}
+            animate={{ 
+              scale: 1,
+              rotate: 12
+            }}
             transition={{ type: "spring", stiffness: 200, damping: 20 }}
-            className="w-20 h-20 bg-surface rounded-3xl flex items-center justify-center mx-auto mb-8 border border-accent/30 shadow-[0_0_50px_var(--accent-glow)] rotate-12"
+            whileHover={{ 
+              scale: 1.15, 
+              rotate: 0,
+              boxShadow: "0 0 70px var(--accent-glow)",
+              transition: { duration: 0.3 }
+            }}
+            className="w-20 h-20 bg-surface rounded-3xl flex items-center justify-center mx-auto mb-8 border border-accent/30 shadow-[0_0_50px_var(--accent-glow)] cursor-pointer"
           >
-            <Heart size={40} className="text-accent fill-accent" />
+            <motion.div
+              animate={{
+                scale: [1, 1.1, 1, 1.2, 1],
+              }}
+              transition={{
+                duration: 1.5,
+                repeat: Infinity,
+                times: [0, 0.1, 0.2, 0.4, 1],
+                ease: "easeInOut"
+              }}
+            >
+              <Heart size={40} className="text-accent fill-accent" />
+            </motion.div>
           </motion.div>
 
-          <motion.h1 
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-6xl md:text-[7rem] font-black uppercase italic tracking-tighter text-white mb-6 leading-none"
-          >
-            {t('Keep it Alive')}
-          </motion.h1>
-
-          <motion.p 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="text-text-muted text-xl md:text-2xl max-w-3xl mx-auto mb-16 font-light leading-relaxed"
-          >
-            {t('ChillZone is a community-driven project. We never run ads. Your support helps us cover the heavy server costs and keep the vault growing.')}
-          </motion.p>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto mb-20">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto mb-20">
             {/* Cash App */}
             <motion.a 
               whileHover={{ y: -10, scale: 1.02 }}
@@ -86,7 +80,7 @@ const DonatePage: React.FC = () => {
               <div className="w-20 h-20 bg-white/5 rounded-3xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500">
                 <img src="https://cdn.simpleicons.org/cashapp/white" alt="Cash App" className="h-10 w-10 object-contain" referrerPolicy="no-referrer" />
               </div>
-              <div className="text-3xl font-black text-white mb-2 tracking-tight"><TranslatedText text="CASH APP" /></div>
+              <h4 className="text-3xl font-black text-white mb-2 tracking-tight"><TranslatedText text="CASH APP" /></h4>
               <p className="text-[#00d632] text-xs font-black uppercase tracking-[0.2em]">{t('Instant')}</p>
               <div className="mt-8 flex items-center gap-2 text-white/40 group-hover:text-white transition-colors">
                 <span className="text-sm font-bold tracking-widest">{t('DONATE NOW')}</span>
@@ -110,7 +104,7 @@ const DonatePage: React.FC = () => {
               <div className="w-20 h-20 bg-white/5 rounded-3xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500">
                 <img src="https://cdn.simpleicons.org/venmo/white" alt="Venmo" className="h-10 w-10 object-contain" referrerPolicy="no-referrer" />
               </div>
-              <div className="text-3xl font-black text-white mb-2 tracking-tight"><TranslatedText text="VENMO" /></div>
+              <h4 className="text-3xl font-black text-white mb-2 tracking-tight"><TranslatedText text="VENMO" /></h4>
               <p className="text-[#3d95ce] text-xs font-black uppercase tracking-[0.2em]">{t('Mobile')}</p>
               <div className="mt-8 flex items-center gap-2 text-white/40 group-hover:text-white transition-colors">
                 <span className="text-sm font-bold tracking-widest">{t('DONATE NOW')}</span>
@@ -134,7 +128,7 @@ const DonatePage: React.FC = () => {
               <div className="w-20 h-20 bg-white/5 rounded-3xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500">
                 <img src="https://cdn.simpleicons.org/paypal/white" alt="PayPal" className="h-10 w-10 object-contain" referrerPolicy="no-referrer" />
               </div>
-              <div className="text-3xl font-black text-white mb-2 tracking-tight"><TranslatedText text="PAYPAL" /></div>
+              <h4 className="text-3xl font-black text-white mb-2 tracking-tight"><TranslatedText text="PAYPAL" /></h4>
               <p className="text-[#0070ba] text-xs font-black uppercase tracking-[0.2em]">{t('Direct')}</p>
               <div className="mt-8 flex items-center gap-2 text-white/40 group-hover:text-white transition-colors">
                 <span className="text-sm font-bold tracking-widest">{t('DONATE NOW')}</span>
@@ -176,18 +170,22 @@ const DonatePage: React.FC = () => {
                 <div className="w-16 h-16 bg-[#5865F2] rounded-2full flex items-center justify-center shrink-0">
                     <MessageSquare size={32} className="text-white fill-white" />
                 </div>
-                <div>
-                    <h4 className="text-2xl font-black text-white italic uppercase tracking-tight leading-none mb-2">{t('Join the Supporter Role')}</h4>
-                    <p className="text-text-muted text-sm">{t('Donated? Message us on Discord to get your special Supporter badge and role.')}</p>
+                <div className="flex-1">
+                    <h4 className="text-3xl font-black italic uppercase tracking-tight leading-none mb-2 bg-gradient-to-r from-white via-accent/80 to-white bg-clip-text text-transparent drop-shadow-[0_0_10px_var(--accent-glow)]">
+                        {t('Join the Community')}
+                    </h4>
+                    <p className="text-text-muted text-lg font-medium">
+                        {t('Connect with other fans and get direct support from the team.')}
+                    </p>
                 </div>
             </div>
             <a 
-                href="https://discord.gg/chillzone" 
+                href="https://discord.gg/czone" 
                 target="_blank" 
                 rel="noopener noreferrer" 
                 className="px-10 py-4 bg-[#5865F2] hover:bg-[#4752c4] text-white font-black italic uppercase tracking-widest rounded-2xl transition-all hover:scale-105 active:scale-95 shadow-[0_10px_30px_rgba(88,101,242,0.3)] shrink-0"
             >
-                {t('GO TO DISCORD')}
+                <span>{t('Join?')}</span>
             </a>
           </motion.div>
         </div>

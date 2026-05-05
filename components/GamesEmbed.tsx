@@ -407,7 +407,7 @@ export default function GamesEmbed() {
   <div class="alert-modal">
     <h3>!Notice!</h3>
     <p>I do not own these links; they belong to the truffled community. Please don't get pissed off, if you want a link removed, dm me on discord (<strong>dominus.elitus</strong>). Y'all should support fr support them tho :)</p>
-    <a href="https://discord.gg/vVqY36mzvj" target="_blank" class="discord-link"><i class="fab fa-discord"></i> Truffled Discord</a>
+    <a href="https://discord.gg/czone" target="_blank" class="discord-link"><i class="fab fa-discord"></i> Truffled Discord</a>
     <button id="noticeContinueBtn" class="primary-btn">Continue</button>
   </div>
 </div>
