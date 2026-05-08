@@ -18,11 +18,20 @@ export default defineConfig(({ mode }) => {
           input: {
             main: path.resolve(__dirname, 'index.html'),
           },
+          output: {
+            manualChunks: {
+              vendor: ['react', 'react-dom', 'framer-motion', 'lucide-react'],
+              utils: ['axios', 'clsx', 'tailwind-merge']
+            }
+          }
         },
       },
       server: {
         port: 3000,
         host: '0.0.0.0',
+        watch: {
+          ignored: ['**/db/**', '**/firebase-applet-config.json', '**/metadata.json']
+        }
       },
       plugins: [
         react(),

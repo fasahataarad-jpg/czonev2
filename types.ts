@@ -29,6 +29,7 @@ export interface LibraryItem {
   year?: number;
   genre?: string[];
   rating?: number;
+  q?: string; // Quality (e.g. 1080p, 4K)
   links?: { part: string; url: string }[]; // Optional multiple links
   desc?: string;
 }

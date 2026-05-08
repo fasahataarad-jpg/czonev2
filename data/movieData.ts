@@ -1482,7 +1482,7 @@ export const MOVIES: Movie[] = [
                 title: "Avengers: Age of Ultron",
                 imageUrl: "https://encrypted-tbn3.gstatic.com/images?q=tbn:ANd9GcTZwDJnD6VKOhM-59yWOvQByIImoNRXM640JyqBsbdHuQBCCIB9",
                 link: "https://drive.google.com/drive/folders/1FHbiGbb_e4uUj6X481bPuFDkTjntbAJR",
-                description: "Avengers battle Ultron, an AI bent on human extinction.",
+                description: "The Avengers face a powerful robotic threat that jeopardizes the world.",
                 year: "2015"
             },
             {

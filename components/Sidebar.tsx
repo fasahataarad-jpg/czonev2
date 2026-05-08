@@ -59,17 +59,35 @@ const Sidebar: React.FC<SidebarProps> = ({ activeCategory, logoUrl, onLogoChange
     <motion.aside 
       initial={false}
       animate={{ 
-        height: isSidebarVisible ? 80 : 0,
+        width: isSidebarVisible ? 280 : 0,
         opacity: isSidebarVisible ? 1 : 0
       }}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      className="bg-bg border-b border-white/5 flex flex-row items-center px-8 shrink-0 transition-all duration-300 z-[100] w-full relative"
+      className="h-full bg-surface/30 backdrop-blur-xl border-r border-white/5 flex flex-col shrink-0 transition-all duration-700 z-[100] relative overflow-hidden"
     >
+      {/* Glossy gradient overlay */}
+      <div className="absolute inset-0 bg-gradient-to-br from-white/[0.02] to-transparent pointer-events-none" />
       
-      <div className="flex-1 h-full flex flex-row items-center gap-8 overflow-x-auto custom-scrollbar no-scrollbar">
-        {/* Data/Navigation Section */}
-        <div className="flex flex-row items-center gap-6 w-full">
+      <div className="p-8 flex flex-col h-full relative z-10">
+        <div className="mb-12 flex items-center justify-center">
+            <div 
+                onClick={handleLogoClick}
+                className="cursor-pointer group relative"
+            >
+                <div className="absolute inset-0 bg-accent rounded-full blur-2xl opacity-0 group-hover:opacity-20 transition-opacity duration-700" />
+                <div className="relative transform group-hover:scale-110 transition-transform duration-700">
+                    <ChillZoneLogo className="w-16 h-16" />
+                </div>
+                <input 
+                    type="file" 
+                    ref={fileInputRef} 
+                    onChange={handleFileChange} 
+                    className="hidden" 
+                    accept="image/*" 
+                />
+            </div>
+        </div>
+
+        <nav className="flex-1 space-y-2 overflow-y-auto custom-scrollbar pr-2">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = activeCategory === item.id;
@@ -77,31 +95,41 @@ const Sidebar: React.FC<SidebarProps> = ({ activeCategory, logoUrl, onLogoChange
               <button
                 key={item.id}
                 onClick={() => handleSelect(item.id)}
-                className={`flex flex-row items-center gap-2 transition-all duration-300 group ${
-                  isActive ? 'text-accent' : 'text-text-secondary hover:text-white'
+                className={`w-full flex items-center gap-4 p-4 rounded-2xl transition-all duration-500 group relative overflow-hidden ${
+                  isActive 
+                    ? 'text-white' 
+                    : 'text-text-secondary hover:text-white'
                 }`}
               >
-                <div className={`p-2.5 rounded-xl transition-all duration-300 relative ${
-                  isActive ? 'bg-accent/10 shadow-[0_0_15px_rgba(255,0,0,0.2)]' : 'group-hover:bg-white/5'
+                {isActive && (
+                  <motion.div 
+                    layoutId="active-nav-bg"
+                    className="absolute inset-0 bg-accent/10 border border-accent/20 shadow-[inset_0_0_20px_rgba(255,0,0,0.05)]"
+                    transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                  />
+                )}
+                
+                <div className={`relative z-10 p-2 rounded-xl transition-all duration-500 ${
+                  isActive ? 'text-accent' : 'group-hover:text-white'
                 }`}>
-                  <Icon size={22} />
+                  <Icon size={22} className={`transition-transform duration-500 ${isActive ? 'scale-110' : 'group-hover:scale-110 group-hover:rotate-6'}`} />
                 </div>
-                <AnimatePresence>
-                  {isHovered && (
-                    <motion.span 
-                      initial={{ opacity: 0, x: -5 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: -5 }}
-                      className="text-[10px] font-black uppercase tracking-[0.2em] italic"
-                    >
-                      {t(item.label)}
-                    </motion.span>
-                  )}
-                </AnimatePresence>
+
+                <span className={`relative z-10 text-[11px] font-black uppercase tracking-[0.2em] italic transition-all duration-500 ${
+                    isActive ? 'translate-x-1' : 'group-hover:translate-x-1'
+                }`}>
+                  {t(item.label)}
+                </span>
+
+                {isActive && (
+                  <div className="absolute right-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-accent rounded-l-full shadow-[0_0_15px_var(--accent)]" />
+                )}
               </button>
             );
           })}
-        </div>
+        </nav>
+
+
       </div>
     </motion.aside>
   );

@@ -24,7 +24,7 @@ import MusicPlayer from './components/MusicPlayer';
 import { SiteAnnouncements } from './components/SiteAnnouncements';
 import { ChillZoneLogo } from './components/ChillZoneLogo';
 import { TranslatedText } from './components/TranslatedText';
-import { Search, X, Film, Sparkles, BookOpen, Tv, SearchX, PlayCircle, Star, Globe, Users, ExternalLink, ShieldAlert, Zap, Activity, Loader2, Book, AlertTriangle, Settings as SettingsIcon, GitCommit, ChevronDown, LayoutGrid, Gamepad2, ShieldCheck, LogOut, LogIn, Send, Music, MessageSquare } from 'lucide-react';
+import { Search, X, Film, Sparkles, BookOpen, Tv, SearchX, PlayCircle, Star, Globe, Users, ExternalLink, ShieldAlert, Zap, Activity, Loader2, Book, AlertTriangle, Settings as SettingsIcon, GitCommit, ChevronDown, LayoutGrid, Gamepad2, ShieldCheck, LogOut, LogIn, Send, Music, MessageSquare, Menu, Columns } from 'lucide-react';
 
 const DEFAULT_LOGO = "/logo.svg";
 
@@ -449,36 +449,11 @@ const App: React.FC = () => {
     <div className="min-h-screen bg-bg text-text-primary">
       <ScrambleEffect />
       <SiteAnnouncements />
-      <div id="app" className="fixed inset-0 flex flex-col overflow-hidden bg-bg text-text-primary">
-        {/* Donation Banner */}
-        <div className="bg-black text-white py-2 px-4 text-sm font-bold z-[60] relative flex items-center shadow-lg border-b border-white/10 overflow-hidden">
-          <div className="flex-1 overflow-hidden relative h-6 flex items-center">
-            <div className="animate-marquee absolute w-full text-left">
-              <TranslatedText text="Don't Forget You Can Pay For Custom Movies, Animes, Tv Shows, OR WTV U Want!" />
-            </div>
-          </div>
-          <button 
-            onClick={() => navigate('donate')} 
-            className="bg-white/10 hover:bg-white/20 border border-white/20 px-4 py-1 rounded-full text-xs uppercase tracking-wider transition-colors shrink-0 ml-4 z-10 relative"
-          >
-            {t('Donate')}
-          </button>
-        </div>
-
+      <div id="app" className="fixed inset-0 flex flex-row overflow-hidden bg-bg text-text-primary">
         {/* Background glows */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden z-[5]">
-          <div className="absolute -top-40 -right-40 w-[700px] h-[700px] rounded-full opacity-60" style={{ background: 'var(--accent-glow-dim)', filter: 'blur(160px)', transform: 'translateZ(0)' }}></div>
-          <div className="absolute top-1/2 left-1/4 w-[500px] h-[500px] rounded-full opacity-30" style={{ background: 'rgba(37,99,235,0.05)', filter: 'blur(130px)', transform: 'translateZ(0)' }}></div>
-        </div>
-
-        <div className="relative z-20 flex items-center justify-between p-4 bg-bg/80 backdrop-blur-md border-b border-white/5">
-            <button 
-                onClick={() => setIsSidebarVisible(!isSidebarVisible)}
-                className="p-2 rounded-xl bg-surface-hover border border-white/5 text-text-secondary hover:text-white"
-            >
-                {isSidebarVisible ? <X size={20} /> : <LayoutGrid size={20} />}
-            </button>
-            <div className="text-xs text-text-secondary">© 2026 {t('ChillZone')}</div>
+          <div className="absolute -top-[10%] -right-[5%] w-[80%] h-[80%] rounded-full opacity-30 mix-blend-screen" style={{ background: 'radial-gradient(circle, var(--accent-glow) 0%, transparent 70%)', filter: 'blur(100px)', transform: 'translateZ(0)' }}></div>
+          <div className="absolute bottom-[10%] -left-[5%] w-[60%] h-[60%] rounded-full opacity-15 mix-blend-overlay" style={{ background: 'radial-gradient(circle, var(--accent) 0%, transparent 70%)', filter: 'blur(120px)', transform: 'translateZ(0)' }}></div>
         </div>
 
         {!isAuthModalOpen && !isAdminOpen && (
@@ -492,9 +467,30 @@ const App: React.FC = () => {
             />
         )}
         
-        <main className="flex-1 flex flex-col min-w-0 h-full relative z-10 overflow-auto custom-scrollbar">
-          <header className="sticky top-0 z-40 border-b border-surface-hover p-4 md:p-6 flex justify-between items-center shrink-0 bg-bg/60 backdrop-blur-xl">
-            <div className="flex items-center gap-4">
+        <main className="flex-1 flex flex-col min-w-0 h-full relative z-10">
+          {/* Donation Banner */}
+          <div className="bg-black/40 backdrop-blur-sm text-white py-2 px-6 text-[10px] font-black uppercase tracking-widest z-[60] relative flex items-center border-b border-white/5 overflow-hidden">
+            <div className="flex-1 overflow-hidden relative h-5 flex items-center">
+              <div className="animate-marquee absolute w-full text-left">
+                <TranslatedText text="Don't Forget You Can Pay For Custom Movies, Animes, Tv Shows, OR WTV U Want!" />
+              </div>
+            </div>
+            <button 
+              onClick={() => navigate('donate')} 
+              className="bg-accent/20 hover:bg-accent/30 border border-accent/30 px-4 py-1 rounded-full text-[9px] font-black uppercase tracking-tighter transition-all shrink-0 ml-4 z-10 relative hover:scale-105"
+            >
+              {t('Donate')}
+            </button>
+          </div>
+
+          <header className="sticky top-0 z-40 border-b border-white/5 p-4 md:px-8 md:py-6 flex justify-between items-center shrink-0 bg-bg/20 backdrop-blur-xl">
+            <div className="flex items-center gap-6">
+              <button 
+                  onClick={() => setIsSidebarVisible(!isSidebarVisible)}
+                  className="p-2.5 rounded-xl bg-white/5 border border-white/10 text-text-secondary hover:text-white hover:bg-white/10 transition-all"
+              >
+                  {isSidebarVisible ? <Menu size={20} /> : <Columns size={20} />}
+              </button>
               <DateTimeWidget />
             </div>
             <div className="flex items-center gap-3 relative">
@@ -697,43 +693,45 @@ const App: React.FC = () => {
                         className="py-12 space-y-24"
                       >
                         {/* Hero Header */}
-                        <div className="relative rounded-[60px] overflow-hidden bg-surface-active/30 border border-white/5 p-12 md:p-24 text-center">
-                          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,var(--accent)_0%,transparent_60%)] opacity-10 pointer-events-none"></div>
+                        <div className="relative rounded-[40px] overflow-hidden bg-bg border border-white/5 p-12 md:p-24 text-center group">
+                          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,var(--accent)_0%,transparent_60%)] opacity-20 pointer-events-none group-hover:opacity-30 transition-opacity duration-1000"></div>
+                          <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,rgba(0,140,255,0.1)_0%,transparent_50%)] pointer-events-none"></div>
                           <motion.div
-                            initial={{ scale: 0.8, opacity: 0 }}
+                            initial={{ scale: 0.95, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
-                            transition={{ duration: 0.8 }}
+                            transition={{ duration: 1, ease: "circOut" }}
                             className="relative z-10"
                           >
-                            <h1 className="text-6xl md:text-9xl font-black uppercase italic tracking-tighter text-white mb-12 drop-shadow-2xl">
+                            <h1 className="text-7xl md:text-[10rem] font-black uppercase italic tracking-tighter text-white mb-16 drop-shadow-2xl">
                               {t('ChillZone')}
                             </h1>
-                            <div className="flex flex-wrap justify-center gap-4">
+                            <div className="flex flex-wrap justify-center gap-6">
                               <motion.button
-                                whileHover={{ scale: 1.05, boxShadow: "0 0 40px var(--accent-glow)" }}
+                                whileHover={{ scale: 1.05, boxShadow: "0 0 50px var(--accent-glow)" }}
                                 whileTap={{ scale: 0.95 }}
                                 onClick={() => navigate('movies')}
-                                className="bg-accent text-white px-10 py-5 rounded-[24px] font-black uppercase tracking-widest text-sm italic transition-all flex items-center gap-3"
+                                className="bg-accent text-white px-12 py-6 rounded-[22px] font-black uppercase tracking-widest text-base italic transition-all flex items-center gap-4 relative overflow-hidden"
                               >
-                                {t('Explore Movies')} <Film size={18} />
+                                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-[100%] hover:animate-[shimmer_2s_infinite] pointer-events-none" />
+                                {t('Explore Movies')} <Film size={20} />
                               </motion.button>
                               <motion.button
-                                whileHover={{ scale: 1.05 }}
+                                whileHover={{ scale: 1.05, backgroundColor: "rgba(255,255,255,0.1)" }}
                                 whileTap={{ scale: 0.95 }}
                                 onClick={() => navigate('support')}
-                                className="bg-white/5 hover:bg-white/10 text-white px-10 py-5 rounded-[24px] border border-white/10 font-black uppercase tracking-widest text-sm italic transition-all flex items-center gap-3"
+                                className="bg-white/5 text-white px-12 py-6 rounded-[22px] border border-white/10 font-black uppercase tracking-widest text-base italic transition-all flex items-center gap-4 backdrop-blur-md"
                               >
-                                {t('Meet Team')} <Users size={18} />
+                                {t('Meet Team')} <Users size={20} />
                               </motion.button>
                               <motion.a
                                 href="https://discord.gg/czone"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                whileHover={{ scale: 1.05, boxShadow: "0 0 40px rgba(88,101,242,0.4)" }}
+                                whileHover={{ scale: 1.05, boxShadow: "0 0 50px rgba(88,101,242,0.5)" }}
                                 whileTap={{ scale: 0.95 }}
-                                className="bg-[#5865F2] text-white px-10 py-5 rounded-[24px] font-black uppercase tracking-widest text-sm italic transition-all flex items-center gap-3"
+                                className="bg-[#5865F2] text-white px-12 py-6 rounded-[22px] font-black uppercase tracking-widest text-base italic transition-all flex items-center gap-4"
                               >
-                                {t('Discord')} <DiscordIcon size={20} />
+                                {t('Discord')} <DiscordIcon size={22} />
                               </motion.a>
                             </div>
                           </motion.div>
@@ -770,27 +768,27 @@ const App: React.FC = () => {
                         </motion.div>
 
                         {/* Recent Discoveries */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
                           {[
-                            { title: 'Movies', count: MOVIES_DATA.length, cat: 'movies', icon: Film, color: 'from-blue-500' },
-                            { title: 'TV Shows', count: TV_DATA.length, cat: 'tv shows', icon: Tv, color: 'from-purple-500' },
-                            { title: 'Anime', count: ANIME_DATA.length, cat: 'anime', icon: Sparkles, color: 'from-pink-500' },
-                            { title: 'Manga', count: MANGA_DATA.length, cat: 'manga', icon: BookOpen, color: 'from-orange-500' },
-                            { title: 'Games', count: '500', cat: 'games', icon: Gamepad2, color: 'from-emerald-500' },
+                            { title: 'Movies', count: MOVIES_DATA.length, cat: 'movies', icon: Film, glow: 'group-hover:shadow-[0_0_30px_rgba(59,130,246,0.3)]' },
+                            { title: 'TV Shows', count: TV_DATA.length, cat: 'tv shows', icon: Tv, glow: 'group-hover:shadow-[0_0_30px_rgba(168,85,247,0.3)]' },
+                            { title: 'Anime', count: ANIME_DATA.length, cat: 'anime', icon: Sparkles, glow: 'group-hover:shadow-[0_0_30px_rgba(236,72,153,0.3)]' },
+                            { title: 'Manga', count: MANGA_DATA.length, cat: 'manga', icon: BookOpen, glow: 'group-hover:shadow-[0_0_30px_rgba(249,115,22,0.3)]' },
+                            { title: 'Games', count: '500', cat: 'games', icon: Gamepad2, glow: 'group-hover:shadow-[0_0_30px_rgba(16,185,129,0.3)]' },
                           ].map((stat, i) => (
                             <motion.div
                               key={i}
-                              whileHover={{ y: -10 }}
+                              whileHover={{ y: -8, scale: 1.02 }}
                               onClick={() => navigate(stat.cat as Category)}
-                              className="bg-surface p-8 rounded-[40px] border border-white/5 hover:border-accent/30 transition-all cursor-pointer group"
+                              className={`bg-white/[0.03] backdrop-blur-xl p-8 rounded-[32px] border border-white/5 transition-all cursor-pointer group flex flex-col items-center text-center ${stat.glow}`}
                             >
-                              <div className={`w-16 h-16 rounded-2xl bg-bg border border-white/5 flex items-center justify-center mb-6 text-accent group-hover:scale-110 group-hover:bg-accent group-hover:text-white transition-all`}>
-                                <stat.icon size={32} />
+                              <div className={`w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mb-6 text-accent group-hover:scale-110 group-hover:bg-accent group-hover:text-white transition-all duration-500`}>
+                                <stat.icon size={28} />
                               </div>
-                              <h3 className="text-3xl font-black text-white mb-2 italic">
+                              <h3 className="text-3xl font-black text-white mb-2 italic tracking-tighter">
                                 {stat.count}+
                               </h3>
-                              <p className="text-text-secondary text-sm font-black uppercase tracking-widest">
+                              <p className="text-text-muted text-[10px] font-black uppercase tracking-[0.2em]">
                                 {t(stat.title)}
                               </p>
                             </motion.div>
@@ -851,12 +849,20 @@ const App: React.FC = () => {
                         </div>
 
                         <div className="text-center py-12">
-                          <div className="flex flex-wrap justify-center gap-12 text-white/50 text-[10px] font-black uppercase tracking-[0.2em]">
+                          <div className="flex flex-wrap justify-center gap-12 text-white/50 text-[10px] font-black uppercase tracking-[0.2em] mb-4">
                             <span><TranslatedText text="Streaming" /></span>
                             <span><TranslatedText text="Gaming" /></span>
                             <span><TranslatedText text="Socials" /></span>
                             <span><TranslatedText text="Anime" /></span>
                           </div>
+                          <a 
+                            href="https://acceptancesuicidegel.com/dhmpuxem?key=076e82e715f14b0cdae05e67b91cb136" 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-white/30 hover:text-accent text-[8px] font-bold uppercase tracking-widest transition-colors"
+                          >
+                            chillz0ne.dev
+                          </a>
                         </div>
                       </motion.div>
                     )}
@@ -1139,7 +1145,7 @@ const App: React.FC = () => {
                   )}
                   {isSearchLink && (
                     <p className="text-center text-[10px] text-text-secondary mt-2 font-bold uppercase tracking-widest flex items-center justify-center gap-2">
-                      <AlertTriangle size={12} /> {t('Direct Feed Offline • Initiating Search Protocol')}
+                      <AlertTriangle size={12} /> {t('Library Offline • Searching Local Database')}
                     </p>
                   )}
                 </div>

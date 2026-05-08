@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { VenetianMask, Palette, ChevronDown, Edit2, X, ExternalLink, Globe, User, Trash2, AlertTriangle } from 'lucide-react';
+import { VenetianMask, Palette, ChevronDown, Edit2, X, ExternalLink, Globe, User, Trash2, AlertTriangle, Settings as SettingsIcon } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLanguage } from '../context/LanguageContext';
 import { auth, db, handleFirestoreError, OperationType, isQuotaExceeded } from '../firebase';
@@ -619,14 +619,34 @@ const Settings: React.FC<SettingsProps> = ({ onClose }) => {
   };
 
   return (
-    <div className="relative bg-bg text-text-primary font-sans flex flex-col min-h-[400px]">
-      <div className="absolute inset-0 z-0 overflow-hidden rounded-2xl">
+    <div className="relative bg-bg/95 text-text-primary font-sans flex flex-col h-full overflow-hidden">
+      <div className="absolute inset-0 z-0 overflow-hidden">
         <ParticleBackground color={activeTheme.colors.accent} />
+        <div className="absolute inset-0 bg-gradient-to-br from-accent/5 to-transparent pointer-events-none" />
       </div>
       
-      {/* Top Navigation */}
-      <div className="flex items-center justify-between p-4 border-b border-border z-10 bg-bg/80 backdrop-blur-sm shrink-0">
-        <div className="flex gap-2">
+      {/* Top Header */}
+      <div className="flex items-center justify-between p-6 border-b border-white/5 z-10 bg-white/[0.02] backdrop-blur-xl shrink-0">
+        <div className="flex items-center gap-4">
+           <div className="p-2.5 rounded-xl bg-accent/10 border border-accent/20 text-accent">
+              <SettingsIcon size={20} />
+           </div>
+           <div>
+              <h2 className="text-lg font-black uppercase italic tracking-widest">{t('Settings')}</h2>
+              <p className="text-[10px] text-text-muted font-bold uppercase tracking-widest leading-none">v2.4.0 • {activeSection}</p>
+           </div>
+        </div>
+        <button 
+          onClick={onClose} 
+          className="p-2 hover:bg-white/5 rounded-xl transition-all text-text-secondary hover:text-white border border-transparent hover:border-white/10"
+        >
+          <X size={20} />
+        </button>
+      </div>
+
+      <div className="flex flex-1 overflow-hidden z-10">
+        {/* Navigation Sidebar */}
+        <div className="w-[120px] border-r border-white/5 flex flex-col p-4 gap-2 shrink-0 bg-white/[0.01]">
           {menuItems.map(item => {
             const Icon = item.icon;
             const isActive = item.id === activeSection;
@@ -634,392 +654,409 @@ const Settings: React.FC<SettingsProps> = ({ onClose }) => {
               <button
                 key={item.id}
                 onClick={() => setActiveSection(item.id)}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                className={`flex flex-col items-center justify-center gap-2 py-4 rounded-2xl transition-all duration-500 group relative ${
                   isActive 
-                    ? 'bg-accent text-white' 
-                    : 'hover:bg-surface-hover opacity-70 hover:opacity-100'
+                    ? 'text-accent' 
+                    : 'text-text-muted hover:text-white'
                 }`}
               >
-                <Icon size={16} />
-                {t(item.label)}
+                {isActive && (
+                  <motion.div 
+                    layoutId="active-setting-tab"
+                    className="absolute inset-0 bg-accent/5 rounded-2xl border border-accent/20"
+                    transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                  />
+                )}
+                <Icon size={20} className={`transition-transform duration-500 ${isActive ? 'scale-110' : 'group-hover:scale-110'}`} />
+                <span className="text-[9px] font-black uppercase tracking-widest">{t(item.label)}</span>
               </button>
             );
           })}
         </div>
-        <button onClick={onClose} className="p-1.5 hover:bg-surface-hover rounded-lg transition-colors text-text-secondary hover:text-text-primary">
-          <X size={18} />
-        </button>
-      </div>
 
-      {/* Main Content */}
-      <div className="flex-1 p-6 z-10 relative overflow-y-auto custom-scrollbar">
-        <div className="max-w-full mx-auto">
-          {activeSection === 'theme' && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-            >
-              <div className="mb-6">
-                <h2 className="text-xl font-semibold mb-1">{t('Theme')}</h2>
-                <p className="text-xs opacity-60">{t('Changes apply instantly.')}</p>
-              </div>
-
-              {currentThemeId === 'aprilfools' && (
-                <motion.div 
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  className="mb-6 p-4 bg-accent/10 border border-accent/30 rounded-xl text-center backdrop-blur-sm"
-                >
-                  <p className="text-sm font-black text-accent italic uppercase tracking-widest">"Wait, are the words moving? I think I'm losing it..." 🤡</p>
-                </motion.div>
-              )}
-
-              <div className="space-y-6">
-                {/* Theme Selection */}
-                <div className="bg-surface border border-border rounded-xl p-4">
-                  <div className="flex items-center gap-3 mb-3">
-                    <Edit2 className="text-accent" size={16} />
-                    <div>
-                      <h3 className="font-medium text-sm">{t('Theme')}</h3>
-                    </div>
+        {/* Content Area */}
+        <div className="flex-1 p-8 overflow-y-auto custom-scrollbar bg-black/20">
+          <AnimatePresence mode="wait">
+            {activeSection === 'theme' && (
+              <motion.div
+                key="theme"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.5, ease: "circOut" }}
+                className="space-y-8"
+              >
+                <div className="flex items-end justify-between border-b border-white/5 pb-6">
+                  <div>
+                    <h3 className="text-3xl font-black uppercase italic tracking-tighter text-white mb-1">{t('Theme Settings')}</h3>
+                    <p className="text-[10px] text-text-muted font-black uppercase tracking-[0.3em]">{t('Personalize your experience')}</p>
                   </div>
-                  
-                  <div className="ml-7">
-                    <CustomSelect 
-                      value={currentThemeId}
-                      onChange={setCurrentThemeId}
-                      options={Object.values(customThemes).map((t: any) => ({ value: t.id, label: t.name }))}
-                    />
-                  </div>
-                </div>
-
-                {/* Theme Name */}
-                <div>
-                  <h3 className="font-medium text-sm mb-2">{t('Theme Name')}</h3>
-                  <input 
-                    type="text" 
-                    value={activeTheme.name}
-                    onChange={(e) => handleNameChange(e.target.value)}
-                    className="w-full bg-surface border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-accent transition-colors mb-1 text-text-primary"
-                  />
-                </div>
-
-                {/* Colors Grid */}
-                <div className="grid grid-cols-2 gap-4">
-                  <ColorPickerItem 
-                    label={t('Background')} 
-                    colorKey="bg" 
-                    value={activeTheme.colors.bg} 
-                    isCustom={activeTheme.colors.bg !== defaultThemes[currentThemeId].colors.bg}
-                    onChange={handleColorChange} 
-                    t={t}
-                  />
-                  <ColorPickerItem 
-                    label={t('Foreground')} 
-                    colorKey="textPrimary" 
-                    value={activeTheme.colors.textPrimary} 
-                    isCustom={activeTheme.colors.textPrimary !== defaultThemes[currentThemeId].colors.textPrimary}
-                    onChange={handleColorChange} 
-                    t={t}
-                  />
-                  <ColorPickerItem 
-                    label={t('Card')} 
-                    colorKey="surface" 
-                    value={activeTheme.colors.surface} 
-                    isCustom={activeTheme.colors.surface !== defaultThemes[currentThemeId].colors.surface}
-                    onChange={handleColorChange} 
-                    t={t}
-                  />
-                  <ColorPickerItem 
-                    label={t('Border')} 
-                    colorKey="border" 
-                    value={activeTheme.colors.border} 
-                    isCustom={activeTheme.colors.border !== defaultThemes[currentThemeId].colors.border}
-                    onChange={handleColorChange} 
-                    t={t}
-                  />
-                  <ColorPickerItem 
-                    label={t('Primary')} 
-                    colorKey="accent" 
-                    value={activeTheme.colors.accent} 
-                    isCustom={activeTheme.colors.accent !== defaultThemes[currentThemeId].colors.accent}
-                    onChange={handleColorChange} 
-                    t={t}
-                  />
-                  <ColorPickerItem 
-                    label={t('Accent')} 
-                    colorKey="surfaceHover" 
-                    value={activeTheme.colors.surfaceHover} 
-                    isCustom={activeTheme.colors.surfaceHover !== defaultThemes[currentThemeId].colors.surfaceHover}
-                    onChange={handleColorChange} 
-                    t={t}
-                  />
-                </div>
-
-                {/* Footer */}
-                <div className="flex items-center justify-between pt-4 border-t border-border">
                   <button 
                     onClick={handleReset}
-                    className="px-3 py-1.5 bg-surface border border-border rounded-lg text-xs font-medium hover:bg-surface-hover transition-colors text-text-primary"
+                    className="px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-[9px] font-black uppercase italic tracking-widest hover:bg-white/10 transition-all text-white/60 hover:text-white"
                   >
-                    {t('Reset to Default')}
+                    {t('Wipe Customization')}
                   </button>
                 </div>
-              </div>
-            </motion.div>
-          )}
 
-          {activeSection === 'cloak' && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-            >
-              <div className="mb-6">
-                <h2 className="text-xl font-semibold mb-1">{t('Cloak Methods')}</h2>
-                <p className="text-xs opacity-60">{t('Hide your activity in an about:blank tab.')}</p>
-              </div>
-
-              <div className="space-y-6">
-                <div className="bg-surface border border-border rounded-xl p-4">
-                  <div className="mb-4">
-                    <h3 className="font-medium text-xs text-text-secondary uppercase tracking-wider mb-2">{t('Cloak Site')}</h3>
-                    <CustomSelect 
-                      value={cloakPreset}
-                      onChange={setCloakPreset}
-                      options={CLOAK_PRESETS.map((p: any) => ({ value: p.id, label: p.id === 'custom' ? t('Custom') : p.label }))}
-                    />
+                <div className="grid grid-cols-1 gap-8">
+                  {/* Preset Selector */}
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3">
+                       <div className="w-6 h-0.5 bg-accent rounded-full" />
+                       <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-text-muted">{t('Select Preset')}</h4>
+                    </div>
+                    <div className="bg-white/[0.03] border border-white/5 rounded-3xl p-6 backdrop-blur-md">
+                      <CustomSelect 
+                        value={currentThemeId}
+                        onChange={setCurrentThemeId}
+                        options={Object.values(customThemes).map((t: any) => ({ value: t.id, label: t.name }))}
+                      />
+                    </div>
                   </div>
 
-                  {cloakPreset === 'custom' && (
-                    <motion.div 
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      className="space-y-4 mt-4 pt-4 border-t border-border"
-                    >
+                  {/* Theme Naming */}
+                  <div className="space-y-4">
+                     <div className="flex items-center gap-3">
+                        <div className="w-6 h-0.5 bg-accent rounded-full" />
+                        <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-text-muted">{t('Display Name')}</h4>
+                     </div>
+                     <div className="bg-white/[0.03] border border-white/5 rounded-3xl p-6 backdrop-blur-md">
+                        <input 
+                          type="text" 
+                          value={activeTheme.name}
+                          onChange={(e) => handleNameChange(e.target.value)}
+                          className="w-full bg-black/40 border border-white/10 rounded-2xl px-6 py-4 text-sm font-bold tracking-tight focus:outline-none focus:border-accent transition-all text-white placeholder:text-text-muted/30"
+                          placeholder={t('Enter unique theme name...')}
+                        />
+                     </div>
+                  </div>
+
+                  {/* Colors Grid */}
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3">
+                        <div className="w-6 h-0.5 bg-accent rounded-full" />
+                        <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-text-muted">{t('Chrome Styling')}</h4>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <ColorPickerItem 
+                        label={t('Chassis')} 
+                        colorKey="bg" 
+                        value={activeTheme.colors.bg} 
+                        isCustom={activeTheme.colors.bg !== defaultThemes[currentThemeId].colors.bg}
+                        onChange={handleColorChange} 
+                      />
+                      <ColorPickerItem 
+                        label={t('Primary Text')} 
+                        colorKey="textPrimary" 
+                        value={activeTheme.colors.textPrimary} 
+                        isCustom={activeTheme.colors.textPrimary !== defaultThemes[currentThemeId].colors.textPrimary}
+                        onChange={handleColorChange} 
+                      />
+                      <ColorPickerItem 
+                        label={t('Component')} 
+                        colorKey="surface" 
+                        value={activeTheme.colors.surface} 
+                        isCustom={activeTheme.colors.surface !== defaultThemes[currentThemeId].colors.surface}
+                        onChange={handleColorChange} 
+                      />
+                      <ColorPickerItem 
+                        label={t('Divider')} 
+                        colorKey="border" 
+                        value={activeTheme.colors.border} 
+                        isCustom={activeTheme.colors.border !== defaultThemes[currentThemeId].colors.border}
+                        onChange={handleColorChange} 
+                      />
+                      <ColorPickerItem 
+                        label={t('Accent Focus')} 
+                        colorKey="accent" 
+                        value={activeTheme.colors.accent} 
+                        isCustom={activeTheme.colors.accent !== defaultThemes[currentThemeId].colors.accent}
+                        onChange={handleColorChange} 
+                      />
+                      <ColorPickerItem 
+                        label={t('Hover State')} 
+                        colorKey="surfaceHover" 
+                        value={activeTheme.colors.surfaceHover} 
+                        isCustom={activeTheme.colors.surfaceHover !== defaultThemes[currentThemeId].colors.surfaceHover}
+                        onChange={handleColorChange} 
+                      />
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {activeSection === 'cloak' && (
+              <motion.div
+                key="cloak"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.5, ease: "circOut" }}
+                className="space-y-8"
+              >
+                <div className="flex items-end justify-between border-b border-white/5 pb-6">
+                  <div>
+                    <h3 className="text-3xl font-black uppercase italic tracking-tighter text-white mb-1">{t('Privacy & Cloak')}</h3>
+                    <p className="text-[10px] text-text-muted font-black uppercase tracking-[0.3em]">{t('Tab masking and disguises')}</p>
+                  </div>
+                </div>
+                
+                <div className="space-y-6">
+                   <div className="bg-white/[0.03] border border-white/5 rounded-3xl p-8 backdrop-blur-md">
+                      <div className="flex items-center gap-4 mb-6">
+                         <div className="p-3 rounded-2xl bg-accent/10 border border-accent/20 text-accent">
+                            <VenetianMask size={24} />
+                         </div>
+                         <div>
+                            <h4 className="text-base font-black uppercase italic tracking-widest">{t('Cloaking Preset')}</h4>
+                            <p className="text-[10px] text-text-muted uppercase tracking-widest">{t('Switch tab identity instantly')}</p>
+                         </div>
+                      </div>
+
+                      <CustomSelect 
+                        value={cloakPreset}
+                        onChange={setCloakPreset}
+                        options={CLOAK_PRESETS.map((p: any) => ({ value: p.id, label: p.id === 'custom' ? t('Custom Disguise') : p.label }))}
+                      />
+
+                      <motion.button
+                        whileHover={{ scale: 1.02, backgroundColor: 'var(--accent)' }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={openAboutBlank}
+                        className="w-full mt-8 py-5 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-center gap-3 text-[11px] font-black uppercase italic tracking-[0.3em] transition-all hover:shadow-[0_0_30px_rgba(255,0,0,0.2)]"
+                      >
+                        {t('Open Disguised Tab')} <ExternalLink size={16} />
+                      </motion.button>
+                   </div>
+                   <div className="space-y-4 pt-4 border-t border-white/5">
+                    <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-xs font-medium text-text-secondary uppercase tracking-wider mb-1.5">{t('Tab Title')}</label>
+                        <label className="block text-[10px] font-black text-text-muted uppercase tracking-[0.2em] mb-2">{t('Tab Title')}</label>
                         <input 
                           type="text" 
                           placeholder="e.g. Google"
                           value={customTitle} 
                           onChange={(e) => setCustomTitle(e.target.value)}
-                          className="w-full bg-bg border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-accent transition-colors text-text-primary"
+                          className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs font-bold focus:outline-none focus:border-accent transition-all text-white placeholder:text-text-muted/30"
                         />
                       </div>
                       <div>
-                        <label className="block text-xs font-medium text-text-secondary uppercase tracking-wider mb-1.5">{t('Tab Icon (URL)')}</label>
+                        <label className="block text-[10px] font-black text-text-muted uppercase tracking-[0.2em] mb-2">{t('Tab Icon URL')}</label>
                         <input 
                           type="text" 
-                          placeholder="Favicon URL"
+                          placeholder={t('Favicon Source URL')}
                           value={customIcon} 
                           onChange={(e) => setCustomIcon(e.target.value)}
-                          className="w-full bg-bg border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-accent transition-colors text-text-primary"
+                          className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs font-bold focus:outline-none focus:border-accent transition-all text-white placeholder:text-text-muted/30"
                         />
                       </div>
-                    </motion.div>
-                  )}
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {activeSection === 'language' && (
+              <motion.div
+                key="language"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.5, ease: "circOut" }}
+                className="space-y-8"
+              >
+                <div className="flex items-end justify-between border-b border-white/5 pb-6">
+                  <div>
+                    <h3 className="text-3xl font-black uppercase italic tracking-tighter text-white mb-1">{t('Regional Settings')}</h3>
+                    <p className="text-[10px] text-text-muted font-black uppercase tracking-[0.3em]">{t('Configure your preferences')}</p>
+                  </div>
                 </div>
 
-                <motion.button 
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={openAboutBlank}
-                  className="w-full bg-accent text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-accent/90 transition-all shadow-[0_0_15px_var(--accent-glow)] text-sm uppercase tracking-wider"
-                >
-                  {t('Open Now')}
-                </motion.button>
-              </div>
-            </motion.div>
-          )}
-
-          {activeSection === 'language' && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-            >
-              <div className="mb-6">
-                <h2 className="text-xl font-semibold mb-1">{t('Language')}</h2>
-                <p className="text-xs opacity-60">{t('Pick your preferred locale for time formatting and future language support.')}</p>
-              </div>
-
-              <div className="space-y-6">
-                <div className="bg-surface border border-border rounded-xl p-4">
-                  <div className="mb-4">
-                    <h3 className="font-medium text-sm text-text-primary mb-1">{t('Language')}</h3>
-                    <p className="text-xs text-text-secondary mb-3">{t('English is the default. Other options adjust locale formatting.')}</p>
+                <div className="space-y-6">
+                  <div className="bg-white/[0.03] border border-white/5 rounded-3xl p-6 backdrop-blur-md">
+                    <div className="flex items-center gap-3 mb-4">
+                        <div className="w-6 h-0.5 bg-accent rounded-full" />
+                        <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-text-muted">{t('System Language')}</h4>
+                    </div>
                     <CustomSelect 
                       value={language}
                       onChange={setLanguage}
                       options={LANGUAGES}
                     />
                   </div>
-                </div>
 
-                <div className="bg-surface border border-border rounded-xl p-4 flex items-center justify-between">
-                  <div>
-                    <h3 className="font-medium text-sm text-text-primary mb-1">{t('Military Time')}</h3>
-                    <p className="text-xs text-text-secondary">{t('Uses 24-hour clock format for the time widget.')}</p>
+                  <div className="bg-white/[0.03] border border-white/5 rounded-3xl p-6 backdrop-blur-md flex items-center justify-between">
+                    <div>
+                      <h4 className="text-[11px] font-black uppercase italic tracking-widest text-white mb-1">{t('24-Hour Time')}</h4>
+                      <p className="text-[10px] text-text-muted uppercase tracking-widest leading-none">{t('Use the 24-hour clock format')}</p>
+                    </div>
+                    <button 
+                      onClick={() => setMilitaryTime(!militaryTime)}
+                      className={`w-12 h-6 rounded-full transition-all duration-500 relative ${militaryTime ? 'bg-accent shadow-[0_0_15px_var(--accent-glow)]' : 'bg-white/10 border border-white/10'}`}
+                    >
+                      <motion.div 
+                        animate={{ x: militaryTime ? 24 : 4 }}
+                        className="absolute top-1 w-4 h-4 rounded-full bg-white shadow-lg" 
+                      />
+                    </button>
                   </div>
-                  <button 
-                    onClick={() => setMilitaryTime(!militaryTime)}
-                    className={`w-10 h-6 rounded-full transition-colors relative ${militaryTime ? 'bg-accent' : 'bg-surface-hover border border-border'}`}
-                  >
-                    <div className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white transition-transform ${militaryTime ? 'translate-x-4' : 'translate-x-0'}`} />
-                  </button>
-                </div>
 
-                <div className="bg-surface border border-border rounded-xl p-4">
-                  <div className="mb-4">
-                    <h3 className="font-medium text-sm text-text-primary mb-1">{t('Time Zone')}</h3>
-                    <p className="text-xs text-text-secondary mb-3">{t('Select a specific time zone or use your system default.')}</p>
+                  <div className="bg-white/[0.03] border border-white/5 rounded-3xl p-6 backdrop-blur-md">
+                    <div className="flex items-center gap-3 mb-4">
+                        <div className="w-6 h-0.5 bg-accent rounded-full" />
+                        <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-text-muted">{t('Time Zone Settings')}</h4>
+                    </div>
                     <CustomSelect 
                       value={timeZone}
                       onChange={setTimeZone}
-                      options={TIME_ZONES.map((tz: any) => ({ value: tz.value, label: tz.value === 'auto' ? t('System Default') : tz.label }))}
+                      options={TIME_ZONES.map((tz: any) => ({ value: tz.value, label: tz.value === 'auto' ? t('System Neutral') : tz.label }))}
                     />
                   </div>
                 </div>
-              </div>
-            </motion.div>
-          )}
+              </motion.div>
+            )}
 
-          {activeSection === 'account' && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-            >
-              <div className="mb-6">
-                <h2 className="text-xl font-semibold mb-1">{t('Account')}</h2>
-                <p className="text-xs opacity-60">{t('Manage your account settings.')}</p>
-              </div>
+            {activeSection === 'account' && (
+              <motion.div
+                key="account"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.5, ease: "circOut" }}
+                className="space-y-8"
+              >
+                <div className="flex items-end justify-between border-b border-white/5 pb-6">
+                  <div>
+                    <h3 className="text-3xl font-black uppercase italic tracking-tighter text-white mb-1">{t('Profile Settings')}</h3>
+                    <p className="text-[10px] text-text-muted font-black uppercase tracking-[0.3em]">{t('Your account information')}</p>
+                  </div>
+                </div>
 
-              <div className="space-y-6">
-                <div className="bg-surface border border-border rounded-xl p-6">
-                  <div className="flex items-center gap-4 mb-6">
-                    <div className="w-16 h-16 rounded-full bg-accent/20 flex items-center justify-center text-accent">
+                <div className="bg-white/[0.03] border border-white/5 rounded-[32px] p-8 backdrop-blur-md">
+                  <div className="flex items-center gap-6 mb-10">
+                    <div className="w-24 h-24 rounded-[32px] bg-accent/10 border border-accent/20 p-1 flex items-center justify-center relative group">
+                      <div className="absolute inset-0 bg-accent/20 rounded-[32px] blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
                       {auth.currentUser?.photoURL ? (
-                        <img src={auth.currentUser.photoURL} alt="Profile" className="w-full h-full rounded-full object-cover" />
+                        <img src={auth.currentUser.photoURL} alt="Profile" className="w-full h-full rounded-[28px] object-cover relative z-10" />
                       ) : (
-                        <User size={32} />
+                        <User size={40} className="text-accent relative z-10" />
                       )}
                     </div>
                     <div>
-                      <h3 className="text-lg font-bold">{auth.currentUser?.displayName || 'User'}</h3>
-                      <p className="text-sm text-text-secondary">{auth.currentUser?.email}</p>
+                      <h3 className="text-2xl font-black uppercase italic tracking-tighter text-white mb-1 drop-shadow-md">
+                        {auth.currentUser?.displayName || t('Unauthorized User')}
+                      </h3>
+                      <p className="text-[10px] text-text-muted font-black uppercase tracking-[0.3em]">{auth.currentUser?.email}</p>
                     </div>
                   </div>
 
-                  <div className="space-y-4 mb-8">
-                    <div>
-                      <label className="block text-xs font-bold text-text-secondary uppercase tracking-wider mb-2">
-                        {t('Display Name')}
-                      </label>
-                      <div className="flex gap-2">
+                  <div className="space-y-8 mb-10">
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-3">
+                          <div className="w-6 h-0.5 bg-accent rounded-full" />
+                          <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-text-muted">{t('Display Name')}</h4>
+                      </div>
+                      <div className="flex gap-3">
                         <input 
                           type="text"
                           value={newDisplayName}
                           onChange={(e) => setNewDisplayName(e.target.value)}
-                          placeholder="Enter new username"
-                          className="flex-1 bg-bg border border-border rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-accent transition-colors text-white"
+                          placeholder={t('Enter Name...')}
+                          className="flex-1 bg-black/40 border border-white/10 rounded-2xl px-6 py-4 text-sm font-bold tracking-tight focus:outline-none focus:border-accent transition-all text-white placeholder:text-text-muted/30"
                         />
                         <button
                           disabled={isUpdatingUsername || !newDisplayName.trim() || newDisplayName === auth.currentUser?.displayName}
                           onClick={handleUpdateUsername}
-                          className="px-4 py-2 bg-accent text-white rounded-lg text-sm font-bold hover:bg-accent/90 transition-all disabled:opacity-50 flex items-center gap-2"
+                          className="px-8 bg-accent text-white rounded-2xl text-[10px] font-black uppercase italic tracking-widest hover:shadow-[0_0_20px_var(--accent-glow)] transition-all disabled:opacity-30 disabled:grayscale flex items-center gap-3"
                         >
                           {isUpdatingUsername ? (
-                            <RefreshCw size={16} className="animate-spin" />
+                            <RefreshCw size={14} className="animate-spin" />
                           ) : usernameSuccess ? (
-                            <CheckCircle2 size={16} />
+                            <CheckCircle2 size={14} />
                           ) : (
-                            <Edit2 size={16} />
+                            <Edit2 size={14} />
                           )}
-                          {usernameSuccess ? t('Updated') : t('Update')}
+                          {usernameSuccess ? t('Synced') : t('Sync')}
                         </button>
                       </div>
                       {usernameError && (
-                        <p className="text-xs text-red-500 font-bold mt-2">{usernameError}</p>
-                      )}
-                      {lastUsernameChange && (
-                        <p className="text-[10px] text-text-secondary mt-2">
-                          {t('Last changed:')} {lastUsernameChange.toDate().toLocaleDateString()}
-                        </p>
+                        <p className="text-[10px] text-red-500 font-black uppercase tracking-widest mt-2 px-2">{usernameError}</p>
                       )}
                     </div>
                   </div>
 
-                  <div className="pt-6 border-t border-border">
-                    <h4 className="text-sm font-black uppercase tracking-widest text-red-500 mb-4 flex items-center gap-2">
-                      <AlertTriangle size={16} />
-                      {t('Danger Zone')}
-                    </h4>
-                    
-                    {!isDeletingAccount ? (
-                      <button 
-                        onClick={() => setIsDeletingAccount(true)}
-                        className="flex items-center gap-2 px-4 py-2 bg-red-500/10 text-red-500 border border-red-500/20 rounded-lg text-sm font-bold hover:bg-red-500/20 transition-all"
-                      >
-                        <Trash2 size={16} />
-                        {t('Delete Account')}
-                      </button>
-                    ) : (
-                      <motion.div 
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: 'auto' }}
-                        className="space-y-4"
-                      >
-                        <p className="text-sm text-text-secondary">
-                          {t('This action is permanent and cannot be undone.')}
-                        </p>
+                  <div className="pt-8 border-t border-white/5">
+                    <div className="p-6 rounded-3xl bg-red-500/[0.03] border border-red-500/10">
+                        <h4 className="text-[11px] font-black uppercase tracking-[0.2em] text-red-500 mb-4 flex items-center gap-2">
+                          <AlertTriangle size={14} />
+                          {t('Danger Zone')}
+                        </h4>
                         
-                        <div>
-                          <label className="block text-xs font-bold text-text-secondary uppercase tracking-wider mb-2">
-                            {t('Type "DELETE" to confirm')}
-                          </label>
-                          <input 
-                            type="text"
-                            value={deleteConfirmation}
-                            onChange={(e) => setDeleteConfirmation(e.target.value)}
-                            placeholder="DELETE"
-                            className="w-full bg-bg border border-red-500/30 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-red-500 transition-colors text-white"
-                          />
-                        </div>
+                        {!isDeletingAccount ? (
+                          <button 
+                            onClick={() => setIsDeletingAccount(true)}
+                            className="flex items-center gap-3 px-6 py-3 bg-red-500/10 text-red-500 border border-red-500/20 rounded-xl text-[10px] font-black uppercase italic tracking-widest hover:bg-red-500 border-transparent hover:text-white transition-all"
+                          >
+                            <Trash2 size={14} />
+                            {t('Delete Account')}
+                          </button>
+                        ) : (
+                          <motion.div 
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            className="space-y-6"
+                          >
+                            <p className="text-[11px] text-text-muted font-bold uppercase tracking-widest leading-relaxed">
+                              {t('Warning: This action is permanent and cannot be undone.')}
+                            </p>
+                            
+                            <div className="space-y-3">
+                              <label className="block text-[10px] font-black text-red-500/60 uppercase tracking-widest">
+                                {t('Type "DELETE" to confirm')}
+                              </label>
+                              <input 
+                                type="text"
+                                value={deleteConfirmation}
+                                onChange={(e) => setDeleteConfirmation(e.target.value)}
+                                placeholder="DELETE"
+                                className="w-full bg-black/40 border border-red-500/20 rounded-xl px-6 py-4 text-sm font-bold tracking-tight focus:outline-none focus:border-red-500 transition-all text-white"
+                              />
+                            </div>
 
-                        {deleteError && (
-                          <p className="text-xs text-red-500 font-bold">{deleteError}</p>
+                            {deleteError && (
+                              <p className="text-[10px] text-red-500 font-black uppercase tracking-widest">{deleteError}</p>
+                            )}
+
+                            <div className="flex gap-4">
+                              <button 
+                                disabled={isDeleting || deleteConfirmation !== 'DELETE'}
+                                onClick={handleDeleteAccount}
+                                className="flex-1 bg-red-500 text-white py-4 rounded-xl text-[10px] font-black uppercase italic tracking-[0.2em] hover:bg-red-600 transition-all disabled:opacity-30 shadow-[0_10px_20px_rgba(239,68,68,0.2)]"
+                              >
+                                {isDeleting ? t('Deleting...') : t('Confirm Deletion')}
+                              </button>
+                              <button 
+                                disabled={isDeleting}
+                                onClick={() => {
+                                  setIsDeletingAccount(false);
+                                  setDeleteConfirmation('');
+                                  setDeleteError(null);
+                                }}
+                                className="flex-1 bg-white/5 border border-white/10 text-white py-4 rounded-xl text-[10px] font-black uppercase italic tracking-[0.2em] hover:bg-white/10 transition-all"
+                              >
+                                {t('Cancel')}
+                              </button>
+                            </div>
+                          </motion.div>
                         )}
-
-                        <div className="flex gap-3">
-                          <button 
-                            disabled={isDeleting || deleteConfirmation !== 'DELETE'}
-                            onClick={handleDeleteAccount}
-                            className="flex-1 bg-red-500 text-white py-2 rounded-lg text-sm font-black uppercase tracking-widest hover:bg-red-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                          >
-                            {isDeleting ? t('Deleting...') : t('Confirm Deletion')}
-                          </button>
-                          <button 
-                            disabled={isDeleting}
-                            onClick={() => {
-                              setIsDeletingAccount(false);
-                              setDeleteConfirmation('');
-                              setDeleteError(null);
-                            }}
-                            className="flex-1 bg-surface border border-border text-text-primary py-2 rounded-lg text-sm font-black uppercase tracking-widest hover:bg-surface-hover transition-all"
-                          >
-                            {t('Cancel')}
-                          </button>
-                        </div>
-                      </motion.div>
-                    )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            </motion.div>
-          )}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
     </div>

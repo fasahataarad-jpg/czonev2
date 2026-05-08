@@ -31,16 +31,25 @@ const DateTimeWidget = () => {
 
   return (
     <motion.div 
-      initial={{ opacity: 0, y: -20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, type: "spring", stiffness: 300, damping: 24 }}
-      className="bg-bg/60 backdrop-blur-xl text-accent px-6 py-2 rounded-2xl border border-accent/20 shadow-2xl flex flex-row items-center gap-4 hover:border-accent/50 transition-colors cursor-default"
+      initial={{ opacity: 0, x: -20 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.8, ease: "circOut" }}
+      className="flex flex-row items-center gap-6 px-5 py-2.5 rounded-2xl bg-black/40 border border-white/5 backdrop-blur-xl group cursor-default"
     >
-      <div className="text-[10px] font-black uppercase tracking-widest text-accent">
-        {dateTime.toLocaleDateString(language, dateOptions).toUpperCase()}
+      <div className="flex flex-col items-end border-r border-white/10 pr-6">
+        <div className="text-[10px] font-black uppercase tracking-[0.2em] text-white">
+          {dateTime.toLocaleDateString(language, dateOptions).toUpperCase()}
+        </div>
       </div>
-      <div className="text-sm font-mono font-bold tracking-tight text-white">
-        {dateTime.toLocaleTimeString(language, timeOptions).toUpperCase()}
+      <div className="flex flex-col">
+        <div className="text-sm font-mono font-black tracking-tighter text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">
+          {dateTime.toLocaleTimeString(language, timeOptions).toUpperCase()}
+        </div>
+      </div>
+      
+      {/* Animated scanline */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-2xl">
+         <div className="w-full h-px bg-white/5 absolute top-0 animate-scanline" />
       </div>
     </motion.div>
   );

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-export const ChillZoneLogo: React.FC<{ size?: number }> = ({ size = 200 }) => {
+export const ChillZoneLogo: React.FC<{ size?: number; className?: string }> = ({ size = 200, className = "" }) => {
   const [phase, setPhase] = useState<'moon' | 'text'>('moon');
 
   useEffect(() => {
@@ -14,7 +14,7 @@ export const ChillZoneLogo: React.FC<{ size?: number }> = ({ size = 200 }) => {
 
   return (
     <div 
-      className="relative flex items-center justify-center select-none cursor-pointer"
+      className={`relative flex items-center justify-center select-none cursor-pointer ${className}`}
       style={{ width: size, height: size }}
     >
       {/* Background Glow */}

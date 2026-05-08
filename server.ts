@@ -8,7 +8,6 @@ import { fileURLToPath } from 'url';
 import axios from 'axios';
 import * as cheerio from 'cheerio';
 import { BetaAnalyticsDataClient } from '@google-analytics/data';
-import YTMusic from 'ytmusic-api';
 import multer from 'multer';
 import fs from 'fs';
 import https from 'https';
@@ -62,16 +61,6 @@ dotenv.config();
 const app = express();
 const PORT = 3000;
 
-const ytmusic = new YTMusic();
-let isYTMusicInitialized = false;
-
-async function initYTMusic() {
-  if (!isYTMusicInitialized) {
-    await ytmusic.initialize();
-    isYTMusicInitialized = true;
-  }
-}
-
 app.set('trust proxy', 1);
 
 app.use(cors());
@@ -124,18 +113,26 @@ const httpsAgent = new https.Agent({
   rejectUnauthorized: false
 });
 
+// In-memory cache for stream URLs to avoid redundant expensive resolutions
+const streamCache = new Map<string, { url: string, expiry: number }>();
+const CACHE_TTL = 10 * 60 * 1000; // 10 minutes cache
+
 // Music Search
 app.get('/api/music/search', async (req, res) => {
   const query = req.query.s as string;
   if (!query) return res.status(400).json({ error: 'Missing search query' });
 
-  // List of Monochrome/Hi-Fi instances from the GitHub document
+  // List of Monochrome instances
   const monoInstances = [
     'https://monochrome-api.samidy.com',
     'https://api.monochrome.tf',
-    'https://hifi.geeked.wtf',
     'https://hund.qqdl.site',
-    'https://katze.qqdl.site'
+    'https://katze.qqdl.site',
+    'https://wolf.qqdl.site',
+    'https://maus.qqdl.site',
+    'https://vogel.qqdl.site',
+    'https://hifi.hund.live',
+    'https://hifi.katze.live'
   ];
 
   for (const base of monoInstances) {
@@ -144,16 +141,17 @@ app.get('/api/music/search', async (req, res) => {
       const response = await axios.get(`${base}/search/`, {
         params: { s: query, limit: 30 },
         headers: { 
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36',
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36',
+          'Accept': '*/*',
+          'Accept-Language': 'en-US,en;q=0.9',
           'Referer': 'https://monochrome.tf/',
           'Origin': 'https://monochrome.tf'
         },
         timeout: 6000,
-        httpsAgent: httpsAgent
+        httpsAgent: httpsAgent,
+        validateStatus: (status) => status === 200
       });
       
-      if (response.status !== 200) continue;
-
       const items = response.data?.data?.items || [];
       if (!Array.isArray(items) || items.length === 0) continue;
       
@@ -182,144 +180,156 @@ app.get('/api/music/search', async (req, res) => {
       return res.json(mapped);
 
     } catch (error: any) {
-      console.warn(`[Music] Monochrome instance ${base} failed: ${error.message}`);
+      console.warn(`[Music] Monochrome search on ${base} failed: ${error.message}`);
     }
   }
 
-  // Final fallback to YTMusic if all Monochrome instances fail
-  console.warn(`[Music] All Monochrome searches failed, using YTMusic fallback`);
-  try {
-    await initYTMusic();
-    const songs = await ytmusic.searchSongs(query);
-    const mapped = songs.map(song => ({
-      id: song.videoId,
-      title: song.name,
-      artist: (song as any).artist?.name || (song as any).artists?.map((a: any) => a.name).join(', ') || 'Unknown Artist',
-      thumb: song.thumbnails[song.thumbnails.length - 1]?.url || '',
-      duration: song.duration,
-      source: 'youtube'
-    }));
-    res.json(mapped);
-  } catch (fallbackError) {
-    console.error('[Music] All search methods failed:', fallbackError);
-    res.status(500).json({ error: 'Music search failed' });
-  }
+  res.status(404).json({ error: 'No results found on any Monochrome instances.' });
 });
 
 // Music Stream 
 app.use('/api/music/stream', async (req, res) => {
-  let id = req.query.id as string;
-  if (!id) return res.status(400).json({ error: 'Missing track or video ID' });
+  const id = req.query.id as string;
+  const isHead = req.method === 'HEAD';
+  if (!id) return res.status(400).json({ error: 'Missing track ID' });
 
-  try {
-    let videoId = id;
+  // 1. Check Cache first
+  const now = Date.now();
+  const cached = streamCache.get(id);
+  let streamUrl = (cached && cached.expiry > now) ? cached.url : null;
 
-    // Handle Tidal IDs from monochrome by bridging to YouTube
-    if (/^\d+$/.test(id)) {
-      console.log(`[Music] Resolving Tidal ID via Monochrome mirrors: ${id}`);
-      const infoInstances = [
-        'https://monochrome-api.samidy.com',
-        'https://api.monochrome.tf',
-        'https://hifi.geeked.wtf'
-      ];
-
-      for (const base of infoInstances) {
-        try {
-          const infoRes = await axios.get(`${base}/info/?id=${id}`, {
-            timeout: 5000,
-            headers: { 'User-Agent': 'Mozilla/5.0' },
-            httpsAgent: httpsAgent
-          });
-          
-          const trackInfo = infoRes.data?.data;
-          if (trackInfo) {
-            console.log(`[Music] Bridging via ${base}: ${trackInfo.title} - ${trackInfo.artist.name}`);
-            await initYTMusic();
-            const ytResults = await ytmusic.searchSongs(`${trackInfo.title} ${trackInfo.artist.name}`);
-            if (ytResults && ytResults.length > 0) {
-              videoId = ytResults[0].videoId;
-              console.log(`[Music] Resolved to YouTube video ID: ${videoId}`);
-              break; // Success
-            }
-          }
-        } catch (bridgeError: any) {
-          console.warn(`[Music] Mirror ${base} failed to resolve ID ${id}: ${bridgeError.message}`);
-        }
-      }
-    }
-
-    console.log(`[Music] Fetching stream via Piped APIs for: ${videoId}`);
-    // Expanded list of Piped instances for better redundancy
-    const pipedInstances = [
-      'https://pipedapi.tokhmi.xyz',
-      'https://api.piped.projectsegfau.lt',
-      'https://pipedapi.adminforge.de',
-      'https://pipedapi.smnz.de',
-      'https://pipedapi.moomoo.me',
-      'https://pipedapi.rivo.cc',
-      'https://api-piped.mha.fi',
-      'https://pipedapi.sync.pablo.casa',
-      'https://pipedapi.kavin.rocks',
-      'https://piped-api.lunar.icu',
-      'https://pipedapi.synced.org',
-      'https://pipedapi.leptons.xyz'
+  if (!streamUrl) {
+    // Monochrome instances for streaming (Stable list + additional fallbacks)
+    const monoInstances = [
+      'https://monochrome-api.samidy.com',
+      'https://api.monochrome.tf',
+      'https://hund.qqdl.site',
+      'https://katze.qqdl.site',
+      'https://wolf.qqdl.site',
+      'https://maus.qqdl.site',
+      'https://vogel.qqdl.site',
+      'https://hifi.hund.live',
+      'https://hifi.katze.live'
     ];
 
-    let streamData = null;
-    let lastError = null;
-
-    for (const apiBase of pipedInstances) {
+    for (const base of monoInstances) {
       try {
-        console.log(`[Music] Trying Piped instance: ${apiBase} for ${videoId}`);
-        const response = await axios.get(`${apiBase}/streams/${videoId}`, {
-          timeout: 6000, // Slightly tighter timeout to cycle through faster
-          validateStatus: (status) => status === 200,
-          httpsAgent: httpsAgent,
-          headers: {
-            'Accept': 'application/json',
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36'
-          }
-        });
+        console.log(`[Music] Resolving Monochrome stream from ${base} for ID: ${id}`);
         
-        const jsonData = response.data;
-        // Verify we actually got the expected JSON data
-        if (jsonData && jsonData.audioStreams && Array.isArray(jsonData.audioStreams) && jsonData.audioStreams.length > 0) {
-           streamData = jsonData;
-           console.log(`[Music] Found stream via ${apiBase}`);
-           break; 
+        const trackRes = await axios.get(`${base}/track/`, {
+          params: { id, quality: 'HIGH' },
+          timeout: 12000,
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36',
+            'Accept': 'application/json, text/plain, */*',
+            'Accept-Language': 'en-US,en;q=0.9',
+            'Referer': 'https://monochrome.tf/',
+            'Origin': 'https://monochrome.tf',
+            'Sec-Fetch-Dest': 'empty',
+            'Sec-Fetch-Mode': 'cors',
+            'Sec-Fetch-Site': 'cross-site'
+          },
+          httpsAgent: httpsAgent,
+          validateStatus: (status) => status === 200
+        });
+
+        const foundUrl = trackRes.data?.data?.url;
+        if (foundUrl) {
+          streamUrl = foundUrl;
+          streamCache.set(id, { url: foundUrl, expiry: now + CACHE_TTL });
+          console.log(`[Music] Successfully resolved ${id} via ${base}`);
+          break;
         } else {
-           console.warn(`[Music] Instance ${apiBase} returned invalid data format or no audio streams`);
-           lastError = new Error('Invalid response or no audio streams');
+          // Fallback: Try without quality parameter if the instance returns success but no URL
+          console.warn(`[Music] Instance ${base} returned OK but no URL. Retrying without quality param.`);
+          const retryRes = await axios.get(`${base}/track/`, {
+            params: { id },
+            timeout: 10000,
+            headers: {
+              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36',
+              'Referer': 'https://monochrome.tf/'
+            },
+            httpsAgent,
+            validateStatus: (status) => status === 200
+          });
+          if (retryRes.data?.data?.url) {
+            const retryUrl = retryRes.data.data.url;
+            streamUrl = retryUrl;
+            streamCache.set(id, { url: retryUrl, expiry: now + CACHE_TTL });
+            console.log(`[Music] Successfully resolved ${id} via ${base} (fallback)`);
+            break;
+          }
         }
       } catch (err: any) {
-        const status = err.response?.status;
-        const msg = err.code === 'ECONNABORTED' ? 'Timeout' : (err.message || 'Unknown Error');
-        console.log(`[Music] Instance ${apiBase} failed: ${status ? status : msg}`);
-        lastError = err;
+        const fetchStatus = err.response?.status;
+        const fetchData = err.response?.data;
+        console.warn(`[Music] Resolution failed on ${base}: ${fetchStatus || 'TIMEOUT'}`, fetchData || err.message);
       }
     }
+  }
 
-    if (!streamData) {
-      console.error(`[Music] All stream proxies failed for ${videoId}. Last error:`, lastError?.message || lastError);
-      return res.status(500).json({ 
-        error: 'All streaming instances failed', 
-        videoId,
-        detail: lastError?.message || String(lastError)
-      });
+  if (!streamUrl) {
+    console.error(`[Music] All Monochrome streaming instances failed for ${id}.`);
+    return res.status(503).json({ error: 'Playback unavailable. The music source is currently unreachable.' });
+  }
+
+  // 2. Handle HEAD requests quickly after resolution
+  if (isHead) {
+    return res.status(200).end();
+  }
+
+  // 3. Proxy the stream
+  try {
+    console.log(`[Music] Proxying stream: ${streamUrl.substring(0, 50)}...`);
+    const streamResponse = await axios({
+      method: 'get',
+      url: streamUrl,
+      responseType: 'stream',
+      timeout: 30000,
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36',
+        'Accept': '*/*',
+        'Accept-Language': 'en-US,en;q=0.9',
+        'Range': req.headers.range || 'bytes=0-',
+        'Referer': 'https://monochrome.tf/',
+        'Origin': 'https://monochrome.tf',
+        'Sec-Fetch-Dest': 'audio',
+        'Sec-Fetch-Mode': 'no-cors',
+        'Sec-Fetch-Site': 'cross-site'
+      },
+      httpsAgent: httpsAgent
+    });
+
+    const contentType = streamResponse.headers['content-type'] || '';
+    if (contentType.includes('text/html') || contentType.includes('application/json')) {
+       console.warn(`[Music] Upstream returned non-audio content: ${contentType}`);
+       return res.status(502).json({ error: 'Source returned invalid audio format.' });
     }
-    
-    // Select highest bitrate audio stream
-    const bestAudio = streamData.audioStreams.sort((a: any, b: any) => b.bitrate - a.bitrate)[0];
-    if (bestAudio && bestAudio.url) {
-      console.log(`[Music] Redirecting to direct audio source for: ${videoId}`);
-      res.redirect(bestAudio.url);
+
+    res.status(streamResponse.status);
+    const headersToCopy = ['content-type', 'content-length', 'content-range', 'accept-ranges', 'cache-control', 'content-disposition'];
+    headersToCopy.forEach(h => {
+      if (streamResponse.headers[h]) res.set(h, streamResponse.headers[h]);
+    });
+
+    req.on('close', () => {
+      if (streamResponse.data) streamResponse.data.destroy();
+    });
+
+    streamResponse.data.on('error', (e: any) => {
+       console.error('[Music] Proxy stream flow error:', e.message);
+       if (!res.headersSent) res.status(500).end();
+       else res.end();
+    });
+
+    streamResponse.data.pipe(res);
+  } catch (proxyErr: any) {
+    console.error(`[Music] Proxy failed for stream:`, proxyErr.response?.status, proxyErr.message);
+    if (!res.headersSent) {
+      res.redirect(streamUrl);
     } else {
-      res.status(500).json({ error: 'No valid audio streams found' });
+      res.end();
     }
-
-  } catch (error: any) {
-    console.error('[Music] Stream extraction total failure:', error.message);
-    res.status(500).json({ error: 'Internal streaming error' });
   }
 });
 

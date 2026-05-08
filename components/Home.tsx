@@ -83,7 +83,7 @@ const Home: React.FC<HomeProps> = ({ onNavigate, onSearch }) => {
           transition={{ duration: 0.5, type: "spring" }}
           className="text-8xl md:text-9xl font-display uppercase tracking-tighter leading-none"
         >
-          MONO<span className="text-accent">CHROME</span>
+          CHILL<span className="text-accent">ZONE</span>
         </motion.h1>
         
         <motion.form 
@@ -170,7 +170,7 @@ const Home: React.FC<HomeProps> = ({ onNavigate, onSearch }) => {
         </div>
 
         <p className="text-text-muted text-[10px] font-black uppercase tracking-[0.5em] pt-20">
-          {t('Secure Archive Access Protocol v2.4.0')}
+          {t('Digital Audio Library Access')}
         </p>
       </motion.div>
     </motion.div>

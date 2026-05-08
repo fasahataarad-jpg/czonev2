@@ -46,46 +46,55 @@ const LibrarySection: React.FC<LibrarySectionProps> = ({ title, items, category,
       transition={{ duration: 0.5 }}
       className="mb-16"
     >
-      <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between border-b border-white/10 pb-6 gap-4">
-        <div>
-          <h2 className="text-3xl font-black uppercase tracking-tighter text-white italic mb-2">
-            {title}
-          </h2>
-          <p className="text-text-secondary text-xs font-bold uppercase tracking-widest">
-            {filteredItems.length} {
-              category === 'movie' ? t('Movies Found') :
-              category === 'tv' ? t('TV Shows Found') :
-              category === 'anime' ? t('Animes Found') :
-              category === 'manga' ? t('Manga Found') :
-              t('Records Found')
-            }
-          </p>
+      <div className="mb-10 flex flex-col md:flex-row md:items-center justify-between border-b border-white/5 pb-10 gap-8 group">
+        <div className="relative">
+          <div className="absolute -left-4 top-0 bottom-0 w-1 bg-accent rounded-full opacity-0 group-hover:opacity-100 transition-all duration-700" />
+          <div className="flex items-baseline gap-4 mb-3">
+            <h2 className="text-5xl font-black uppercase tracking-tighter text-white italic drop-shadow-2xl">
+              {title}
+            </h2>
+            <div className="h-0.5 flex-1 w-20 bg-accent/20 hidden md:block" />
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="px-3 py-1 bg-accent rounded-md">
+                <span className="text-[9px] font-black text-black uppercase tracking-widest">{filteredItems.length}</span>
+            </div>
+            <p className="text-text-muted text-[10px] font-black uppercase tracking-[0.4em]">
+              {
+                category === 'movie' ? t('Movies') :
+                category === 'tv' ? t('TV Shows') :
+                category === 'anime' ? t('Anime') :
+                category === 'manga' ? t('Manga') :
+                t('Database Records')
+              }
+            </p>
+          </div>
         </div>
         
         {showSearch && (
           <div className="relative w-full md:max-w-xs group">
             <input 
               type="text"
-              placeholder={`${t('Search...')} ${title.toLowerCase()}`}
+              placeholder={t('FILTER_DATABASE')}
               value={localSearch}
               onChange={(e) => setLocalSearch(e.target.value)}
-              className="w-full bg-bg border border-white/10 rounded-xl py-2.5 pl-10 pr-4 outline-none focus:border-white transition-all duration-300 text-sm placeholder:text-text-muted"
+              className="w-full bg-white/[0.02] border border-white/5 rounded-2xl py-4 pl-12 pr-6 outline-none focus:border-accent/40 focus:bg-white/[0.05] transition-all duration-500 text-xs font-black tracking-widest uppercase placeholder:text-text-muted/40"
             />
-            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-white transition-colors">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-accent transition-colors duration-500">
+               <div className="p-1 rounded-lg bg-white/5 border border-white/5">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+               </div>
             </div>
             {localSearch && (
               <button 
                 onClick={() => setLocalSearch('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-white"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-text-muted hover:text-white transition-colors"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
               </button>
             )}
           </div>
         )}
-
-        <div className="hidden md:block h-1 w-20 bg-white rounded-full"></div>
       </div>
 
       {filteredItems.length > 0 ? (

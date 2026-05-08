@@ -12,9 +12,9 @@ export const getWikiIntelligence = async (title: string) => {
       model: 'gemini-3-flash-preview',
       contents: `Search for real-world information about "${title}". 
       Provide a concise 3-sentence summary including release year, main cast, and reception.
-      Use a dark, cinematic tone.`,
+      Use a concise, informative tone.`,
       config: {
-        systemInstruction: "You are the Archive Intelligence. You provide verified data from the global knowledge base with an atmospheric, mysterious flair.",
+        systemInstruction: "You are the Library Assistant. You provide verified facts about movies and media.",
         tools: [{ googleSearch: {} }],
         temperature: 0.2,
       }
@@ -24,7 +24,7 @@ export const getWikiIntelligence = async (title: string) => {
     const sources = response.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
     
     return {
-      text: text?.trim() || "Information restricted or unavailable in the current sector.",
+      text: text?.trim() || "Information unavailable at this time.",
       sources: sources.map((chunk: any) => chunk.web?.uri).filter(Boolean) as string[]
     };
   } catch (error) {
@@ -44,10 +44,10 @@ export const getQueryAestheticDescription = async (query: string) => {
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
       contents: `Generate a short, 1-sentence cinematic theme for this search: "${query}". 
-      Example: "Uncovering the secrets of the digital frontier."
-      Make it mysterious and atmospheric.`,
+      Example: "Discovering great stories from across the globe."
+      Make it engaging and informative.`,
       config: {
-        systemInstruction: "You are the AI Librarian of ChillZone. Your voice is dark, futuristic, and slightly mysterious.",
+        systemInstruction: "You are the ChillZone assistant. Your voice is helpful and clear.",
         temperature: 0.7,
         maxOutputTokens: 50,
       }
