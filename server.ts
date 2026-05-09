@@ -142,12 +142,15 @@ app.get('/api/music/search', async (req, res) => {
         params: { s: query, limit: 30 },
         headers: { 
           'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36',
-          'Accept': '*/*',
+          'Accept': 'application/json, text/plain, */*',
           'Accept-Language': 'en-US,en;q=0.9',
           'Referer': 'https://monochrome.tf/',
-          'Origin': 'https://monochrome.tf'
+          'Origin': 'https://monochrome.tf',
+          'Sec-Fetch-Dest': 'empty',
+          'Sec-Fetch-Mode': 'cors',
+          'Sec-Fetch-Site': 'cross-site'
         },
-        timeout: 6000,
+        timeout: 10000,
         httpsAgent: httpsAgent,
         validateStatus: (status) => status === 200
       });
@@ -180,7 +183,7 @@ app.get('/api/music/search', async (req, res) => {
       return res.json(mapped);
 
     } catch (error: any) {
-      console.warn(`[Music] Monochrome search on ${base} failed: ${error.message}`);
+      console.warn(`[Music] Monochrome search on ${base} failed:`, error.response?.status, error.response?.data || error.message);
     }
   }
 
