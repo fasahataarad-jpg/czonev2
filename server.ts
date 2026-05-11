@@ -74,18 +74,20 @@ app.use((req, res, next) => {
   
   if (isApi) {
     console.log(`[Server] ${new Date().toISOString()} API REQUEST: ${req.method} ${req.path}${req.url.includes('?') ? '?' + req.url.split('?')[1] : ''}`);
-  } else if (!isAsset && req.url !== '/' && !req.url.startsWith('/@') && req.method === 'GET') {
-    console.log(`[Server] ${new Date().toISOString()} NAVIGATION: ${req.method} ${req.url}`);
-    
-    // Simple Local Analytics tracking
-    try {
-      const analytics = readSingleDb('analytics');
-      const date = new Date().toISOString().split('T')[0];
-      if (!analytics[date]) analytics[date] = 0;
-      analytics[date]++;
-      writeSingleDb('analytics', analytics);
-    } catch (e) {
-      console.warn('[Analytics] Failed to track page view:', e);
+  } else if (!isAsset && !req.url.startsWith('/@') && req.method === 'GET') {
+    // Only track actual page hits or direct entries
+    const cleanPath = req.path;
+    if (cleanPath === '/' || !cleanPath.includes('.')) {
+      console.log(`[Server] ${new Date().toISOString()} ACCESS: ${req.method} ${req.url}`);
+      try {
+        const analytics = readSingleDb('analytics');
+        const date = new Date().toISOString().split('T')[0];
+        if (!analytics[date]) analytics[date] = 0;
+        analytics[date]++;
+        writeSingleDb('analytics', analytics);
+      } catch (e) {
+        console.warn('[Analytics] Failed to track page view:', e);
+      }
     }
   }
   next();

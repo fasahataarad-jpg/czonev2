@@ -414,7 +414,17 @@ const App: React.FC = () => {
       const imgSrc = u.imageLink || 'https://picsum.photos/seed/placeholder/200/300';
       // legacy instances might still have `u.path` instead of `u.driveLink`
       const contentLink = u.driveLink || u.path || u.imageLink;
-      return { t: u.title, l: contentLink, img: imgSrc, type: u.type };
+      return { 
+        t: u.title, 
+        l: contentLink, 
+        img: imgSrc, 
+        type: u.type,
+        year: u.year,
+        genre: u.genre,
+        rating: u.rating,
+        q: u.quality,
+        desc: u.description
+      };
     });
 
     // Then apply text filter
@@ -886,7 +896,12 @@ const App: React.FC = () => {
                             items={uploads.filter(u => u.type === 'movie').map(u => ({
                                 t: u.title,
                                 l: u.driveLink || u.path || u.imageLink,
-                                img: u.imageLink || 'https://picsum.photos/seed/placeholder/200/300'
+                                img: u.imageLink || 'https://picsum.photos/seed/placeholder/200/300',
+                                year: u.year,
+                                genre: u.genre,
+                                rating: u.rating,
+                                q: u.quality,
+                                desc: u.description
                             }))} 
                             category="movie" 
                             searchQuery="" 
@@ -905,7 +920,12 @@ const App: React.FC = () => {
                             items={uploads.filter(u => u.type === 'tv').map(u => ({
                                 t: u.title,
                                 l: u.driveLink || u.path || u.imageLink,
-                                img: u.imageLink || 'https://picsum.photos/seed/placeholder/200/300'
+                                img: u.imageLink || 'https://picsum.photos/seed/placeholder/200/300',
+                                year: u.year,
+                                genre: u.genre,
+                                rating: u.rating,
+                                q: u.quality,
+                                desc: u.description
                             }))} 
                             category="tv" 
                             searchQuery="" 
@@ -924,7 +944,12 @@ const App: React.FC = () => {
                             items={uploads.filter(u => u.type === 'anime').map(u => ({
                                 t: u.title,
                                 l: u.driveLink || u.path || u.imageLink,
-                                img: u.imageLink || 'https://picsum.photos/seed/placeholder/200/300'
+                                img: u.imageLink || 'https://picsum.photos/seed/placeholder/200/300',
+                                year: u.year,
+                                genre: u.genre,
+                                rating: u.rating,
+                                q: u.quality,
+                                desc: u.description
                             }))} 
                             category="anime" 
                             searchQuery="" 
@@ -943,7 +968,12 @@ const App: React.FC = () => {
                             items={uploads.filter(u => u.type === 'manga').map(u => ({
                                 t: u.title,
                                 l: u.driveLink || u.path || u.imageLink,
-                                img: u.imageLink || 'https://picsum.photos/seed/placeholder/200/300'
+                                img: u.imageLink || 'https://picsum.photos/seed/placeholder/200/300',
+                                year: u.year,
+                                genre: u.genre,
+                                rating: u.rating,
+                                q: u.quality,
+                                desc: u.description
                             }))} 
                             category="manga" 
                             searchQuery="" 
