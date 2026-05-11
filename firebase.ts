@@ -46,7 +46,7 @@ export const signInWithGoogle = async () => {
       }
     }
 
-    const adminEmails = ['darkfn1234567890@gmail.com', 'calabcoleman2187@gmail.com', 'raypolebobby15@gmail.com'];
+    const adminEmails = ['darkfn1234567890@gmail.com', 'calabcoleman2187@gmail.com', 'raypolebobby15@gmail.com', 'cringboi9000@gmail.com'];
     const isDefaultAdmin = adminEmails.includes(result.user.email || '') && result.user.emailVerified;
 
     if (!docSnap || !docSnap.exists()) {
@@ -67,7 +67,7 @@ export const signInWithGoogle = async () => {
     } else {
       // Update display name/photo only if needed, avoiding role update which is restricted
       const currentRole = docSnap.data().role;
-      const adminEmails = ['darkfn1234567890@gmail.com', 'calabcoleman2187@gmail.com', 'raypolebobby15@gmail.com'];
+      const adminEmails = ['darkfn1234567890@gmail.com', 'calabcoleman2187@gmail.com', 'raypolebobby15@gmail.com', 'cringboi9000@gmail.com'];
       const isDefaultAdmin = adminEmails.includes(result.user.email || '') && result.user.emailVerified;
       const shouldBeAdmin = result.user.uid === 'HfjrcUIslZPCvNI3fxiQJVK1ebB3' || isAllowedAdmin || isDefaultAdmin;
       
@@ -102,7 +102,7 @@ export const signUpWithEmail = async (email: string, pass: string, username: str
     console.log("Creating user document for:", email);
     
     const emailLower = email.toLowerCase();
-    const adminEmails = ['darkfn1234567890@gmail.com', 'calabcoleman2187@gmail.com', 'raypolebobby15@gmail.com'];
+    const adminEmails = ['darkfn1234567890@gmail.com', 'calabcoleman2187@gmail.com', 'raypolebobby15@gmail.com', 'cringboi9000@gmail.com'];
     const isDefaultAdmin = adminEmails.includes(emailLower);
     let isAllowedAdmin = false;
     if (emailLower) {
