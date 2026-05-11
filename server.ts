@@ -338,11 +338,13 @@ app.use('/api/music/stream', async (req, res) => {
 
 // GA4 Proxy Route
 app.get('/api/analytics/data', async (req, res) => {
+  console.log('[Analytics] Request received');
   try {
     const propertyId = '527976762';
     
     // Check if GA4 is configured
     if (process.env.GA4_SERVICE_ACCOUNT_JSON) {
+      console.log('[Analytics] Attempting GA4 fetch...');
       try {
         const credentials = JSON.parse(process.env.GA4_SERVICE_ACCOUNT_JSON);
         const analyticsDataClient = new BetaAnalyticsDataClient({
@@ -356,14 +358,17 @@ app.get('/api/analytics/data', async (req, res) => {
           dimensions: [{ name: 'date' }],
         });
 
+        console.log('[Analytics] GA4 fetch successful');
         return res.json(response);
       } catch (e) {
-        console.error('GA4 configuration error, falling back to local analytics:', e);
+        console.error('[Analytics] GA4 configuration error, falling back to local analytics:', e);
       }
     }
     
     // Local Analytics Fallback
+    console.log('[Analytics] Using local analytics fallback');
     const localData = readSingleDb('analytics');
+    console.log(`[Analytics] Local data entries: ${Object.keys(localData).length}`);
     const rows = Object.entries(localData).map(([date, count]) => ({
       dimensionValues: [{ value: date.replace(/-/g, '') }],
       metricValues: [{ value: String(count) }]
@@ -371,7 +376,7 @@ app.get('/api/analytics/data', async (req, res) => {
 
     res.json({ rows });
   } catch (error) {
-    console.error('Analytics total failure:', error);
+    console.error('[Analytics] Total failure:', error);
     res.status(500).json({ error: 'Failed to fetch analytics' });
   }
 });
