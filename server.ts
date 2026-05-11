@@ -166,25 +166,33 @@ const httpsAgent = new https.Agent({
 const streamCache = new Map<string, { url: string, expiry: number }>();
 const CACHE_TTL = 10 * 60 * 1000; // 10 minutes cache
 
+// Shared list of instances and health tracking
+const MONO_INSTANCES = [
+  'https://monochrome.tf',
+  'https://monochrome.hund.live',
+  'https://monochrome.katze.live',
+  'https://monochrome.wolf.live',
+  'https://hifi.hund.live',
+  'https://hifi.katze.live',
+  'https://api.monochrome.tf',
+  'https://monochrome-api.samidy.com',
+  'https://maus.qqdl.site',
+  'https://vogel.qqdl.site',
+  'https://hund.qqdl.site',
+  'https://katze.qqdl.site',
+  'https://wolf.qqdl.site'
+];
+const instanceCooldowns = new Map<string, number>();
+
 // Music Search
 app.get('/api/music/search', async (req, res) => {
   const query = req.query.s as string;
   if (!query) return res.status(400).json({ error: 'Missing search query' });
 
-  // List of Monochrome instances
-  const monoInstances = [
-    'https://monochrome-api.samidy.com',
-    'https://api.monochrome.tf',
-    'https://hund.qqdl.site',
-    'https://katze.qqdl.site',
-    'https://wolf.qqdl.site',
-    'https://maus.qqdl.site',
-    'https://vogel.qqdl.site',
-    'https://hifi.hund.live',
-    'https://hifi.katze.live'
-  ];
+  for (const base of MONO_INSTANCES) {
+    const cooldownUntil = instanceCooldowns.get(base) || 0;
+    if (Date.now() < cooldownUntil) continue;
 
-  for (const base of monoInstances) {
     try {
       console.log(`[Music] Searching Monochrome instance ${base} for: ${query}`);
       const response = await axios.get(`${base}/search/`, {
@@ -193,19 +201,22 @@ app.get('/api/music/search', async (req, res) => {
           'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36',
           'Accept': 'application/json, text/plain, */*',
           'Accept-Language': 'en-US,en;q=0.9',
-          'Referer': 'https://monochrome.tf/',
-          'Origin': 'https://monochrome.tf',
+          'Referer': `${base}/`,
+          'Origin': `${base}`,
           'Sec-Fetch-Dest': 'empty',
           'Sec-Fetch-Mode': 'cors',
           'Sec-Fetch-Site': 'cross-site'
         },
-        timeout: 10000,
+        timeout: 8000,
         httpsAgent: httpsAgent,
         validateStatus: (status) => status === 200
       });
       
       const items = response.data?.data?.items || [];
-      if (!Array.isArray(items) || items.length === 0) continue;
+      if (!Array.isArray(items) || items.length === 0) {
+        // If we got success but no items, maybe try next instance but don't cooldown
+        continue;
+      }
       
       const mapped = items.map((s: any) => {
         let coverUrl = '';
@@ -232,11 +243,18 @@ app.get('/api/music/search', async (req, res) => {
       return res.json(mapped);
 
     } catch (error: any) {
-      console.warn(`[Music] Monochrome search on ${base} failed:`, error.response?.status, error.response?.data || error.message);
+      const status = error.response?.status;
+      console.warn(`[Music] Monochrome search on ${base} failed:`, status, error.message);
+      
+      // If 403 or 502/503/504, put instance on cooldown for 5 minutes
+      if (status === 403 || status >= 500) {
+        console.log(`[Music] Cooldown initiated for ${base} due to status ${status}`);
+        instanceCooldowns.set(base, Date.now() + 5 * 60 * 1000);
+      }
     }
   }
 
-  res.status(404).json({ error: 'No results found on any Monochrome instances.' });
+  res.status(404).json({ error: 'No results found on any available Monochrome instances.' });
 });
 
 // Music Stream 
@@ -251,32 +269,22 @@ app.use('/api/music/stream', async (req, res) => {
   let streamUrl = (cached && cached.expiry > now) ? cached.url : null;
 
   if (!streamUrl) {
-    // Monochrome instances for streaming (Stable list + additional fallbacks)
-    const monoInstances = [
-      'https://monochrome-api.samidy.com',
-      'https://api.monochrome.tf',
-      'https://hund.qqdl.site',
-      'https://katze.qqdl.site',
-      'https://wolf.qqdl.site',
-      'https://maus.qqdl.site',
-      'https://vogel.qqdl.site',
-      'https://hifi.hund.live',
-      'https://hifi.katze.live'
-    ];
+    for (const base of MONO_INSTANCES) {
+      const cooldownUntil = instanceCooldowns.get(base) || 0;
+      if (now < cooldownUntil) continue;
 
-    for (const base of monoInstances) {
       try {
         console.log(`[Music] Resolving Monochrome stream from ${base} for ID: ${id}`);
         
         const trackRes = await axios.get(`${base}/track/`, {
           params: { id, quality: 'HIGH' },
-          timeout: 12000,
+          timeout: 10000,
           headers: {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36',
             'Accept': 'application/json, text/plain, */*',
             'Accept-Language': 'en-US,en;q=0.9',
-            'Referer': 'https://monochrome.tf/',
-            'Origin': 'https://monochrome.tf',
+            'Referer': `${base}/`,
+            'Origin': `${base}`,
             'Sec-Fetch-Dest': 'empty',
             'Sec-Fetch-Mode': 'cors',
             'Sec-Fetch-Site': 'cross-site'
@@ -296,10 +304,10 @@ app.use('/api/music/stream', async (req, res) => {
           console.warn(`[Music] Instance ${base} returned OK but no URL. Retrying without quality param.`);
           const retryRes = await axios.get(`${base}/track/`, {
             params: { id },
-            timeout: 10000,
+            timeout: 8000,
             headers: {
               'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36',
-              'Referer': 'https://monochrome.tf/'
+              'Referer': `${base}/`
             },
             httpsAgent,
             validateStatus: (status) => status === 200
@@ -314,8 +322,12 @@ app.use('/api/music/stream', async (req, res) => {
         }
       } catch (err: any) {
         const fetchStatus = err.response?.status;
-        const fetchData = err.response?.data;
-        console.warn(`[Music] Resolution failed on ${base}: ${fetchStatus || 'TIMEOUT'}`, fetchData || err.message);
+        console.warn(`[Music] Resolution failed on ${base}: ${fetchStatus || 'TIMEOUT'}`);
+        
+        // Cooldown for 403 or server errors
+        if (fetchStatus === 403 || fetchStatus >= 500) {
+          instanceCooldowns.set(base, now + 5 * 60 * 1000);
+        }
       }
     }
   }

@@ -53,6 +53,9 @@ const UpdateLog: React.FC<UpdateLogProps> = ({ onClose }) => {
     const unsub = onSnapshot(q, (snapshot) => {
       setUpdates(snapshot.docs.map(doc => doc.data() as ChangelogEntry));
       setLoading(false);
+    }, (error) => {
+      console.error("Changelog Sync Error:", error);
+      setLoading(false);
     });
     return () => unsub();
   }, []);

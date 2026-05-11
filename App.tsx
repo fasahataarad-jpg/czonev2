@@ -16,6 +16,7 @@ import { collection, query, orderBy, onSnapshot } from 'firebase/firestore';
 import AdminDashboard from './components/AdminDashboard';
 import AuthModal from './components/AuthModal';
 import SuggestionModal from './components/SuggestionModal';
+import AIChat from './components/AIChat';
 import DonatePage from './components/DonatePage';
 import ProxiesPage from './components/ProxiesPage';
 import StaffPage from './components/StaffPage';
@@ -107,7 +108,7 @@ const getInitialCategory = (): Category => {
   const path = window.location.pathname.substring(1).toLowerCase();
   if (!path) return 'donate';
   const normalizedPath = path.replace('-', ' ') as Category;
-  const validCategories: Category[] = ['home', 'movies', 'tv shows', 'anime', 'manga', 'proxies', 'partners', 'dev', 'support', 'donate', 'apps', 'browser', 'settings', 'games', 'socials'];
+  const validCategories: Category[] = ['home', 'movies', 'tv shows', 'anime', 'manga', 'proxies', 'partners', 'dev', 'support', 'donate', 'apps', 'browser', 'settings', 'games', 'socials', 'ai'];
   
   if (validCategories.includes(normalizedPath)) {
     return normalizedPath;
@@ -177,6 +178,7 @@ const App: React.FC = () => {
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isSuggestionModalOpen, setIsSuggestionModalOpen] = useState(false);
+  const [isAIChatOpen, setIsAIChatOpen] = useState(false);
   const [hasOpenedUpdateLog, setHasOpenedUpdateLog] = useState(false);
   const [user, setUser] = useState<any | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -303,6 +305,8 @@ const App: React.FC = () => {
           setIsAdminOpen(false);
         } else if (isSuggestionModalOpen) {
           setIsSuggestionModalOpen(false);
+        } else if (isAIChatOpen) {
+          setIsAIChatOpen(false);
         }
       }
     };
@@ -328,7 +332,7 @@ const App: React.FC = () => {
         return;
       }
       const normalizedPath = path.replace('-', ' ') as Category;
-      const validCategories: Category[] = ['home', 'movies', 'tv shows', 'anime', 'manga', 'music', 'proxies', 'partners', 'dev', 'support', 'donate', 'apps', 'browser', 'settings', 'games', 'socials'];
+      const validCategories: Category[] = ['home', 'movies', 'tv shows', 'anime', 'manga', 'music', 'proxies', 'partners', 'dev', 'support', 'donate', 'apps', 'browser', 'settings', 'games', 'socials', 'ai'];
       
       if (validCategories.includes(normalizedPath)) {
         setActiveCategory(normalizedPath);
@@ -995,6 +999,12 @@ const App: React.FC = () => {
                       <ProxiesPage />
                     )}
 
+                    {activeCategory === 'ai' && (
+                      <div className="flex-1 flex flex-col h-full bg-[#050505]">
+                        <AIChat isOpen={true} onClose={() => {}} isEmbedded={true} />
+                      </div>
+                    )}
+
                     {activeCategory === 'partners' && <Partners />}
 
                     {activeCategory === 'socials' && (
@@ -1187,7 +1197,11 @@ const App: React.FC = () => {
         )}
       </AnimatePresence>
 
-      {/* Modals & Overlays */}
+      {/* AI Chat Popup (only when NOT on AI page) */}
+      {activeCategory !== 'ai' && (
+        <AIChat isOpen={isAIChatOpen} onClose={() => setIsAIChatOpen(false)} />
+      )}
+
       <AnimatePresence>
         {isAuthModalOpen && (
           <motion.div

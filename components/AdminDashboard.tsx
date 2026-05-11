@@ -251,6 +251,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose, isSuperAdmin, 
     const announcementsQuery = query(collection(db, 'site_announcements'), orderBy('createdAt', 'desc'));
     const unsubAnnouncements = onSnapshot(announcementsQuery, (snapshot) => {
       setAnnouncements(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Announcement)));
+    }, (error) => {
+      handleFirestoreError(error, OperationType.LIST, 'site_announcements');
     });
     unsubsRef.current.announcements = unsubAnnouncements;
 
@@ -258,6 +260,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose, isSuperAdmin, 
     const suggestionsQuery = query(collection(db, 'suggestions'), orderBy('createdAt', 'desc'));
     const unsubSuggestions = onSnapshot(suggestionsQuery, (snapshot) => {
       setSuggestions(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Suggestion)));
+    }, (error) => {
+      handleFirestoreError(error, OperationType.LIST, 'suggestions');
     });
     unsubsRef.current.suggestions = unsubSuggestions;
 
@@ -274,6 +278,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose, isSuperAdmin, 
     const adminsQuery = query(collection(db, 'allowed_admins'), orderBy('createdAt', 'desc'));
     const unsubAdmins = onSnapshot(adminsQuery, (snapshot) => {
       setAllowedAdmins(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as AllowedAdmin)));
+    }, (error) => {
+      handleFirestoreError(error, OperationType.LIST, 'allowed_admins');
     });
     unsubsRef.current.admins = unsubAdmins;
 
@@ -281,6 +287,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose, isSuperAdmin, 
     const changelogsQuery = query(collection(db, 'changelogs'), orderBy('createdAt', 'desc'));
     const unsubChangelogs = onSnapshot(changelogsQuery, (snapshot) => {
       setChangelogs(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Changelog)));
+    }, (error) => {
+      handleFirestoreError(error, OperationType.LIST, 'changelogs');
     });
     unsubsRef.current.changelogs = unsubChangelogs;
 

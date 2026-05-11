@@ -47,7 +47,7 @@ export const getQueryAestheticDescription = async (query: string) => {
       Example: "Discovering great stories from across the globe."
       Make it engaging and informative.`,
       config: {
-        systemInstruction: "You are the ChillZone assistant. Your voice is helpful and clear.",
+        systemInstruction: "You are a helpful assistant. Your voice is helpful and clear.",
         temperature: 0.7,
         maxOutputTokens: 50,
       }
@@ -84,3 +84,38 @@ export const translateText = async (text: string, targetLanguage: string) => {
     return text;
   }
 };
+
+/**
+ * Streams a chat conversation with Gemini.
+ */
+export async function* streamChat(messages: { role: string; content: string }[], systemInstruction: string) {
+  try {
+    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || process.env.API_KEY || '' });
+    
+    // Map roles: user -> user, assistant -> model
+    const contents = messages.map(msg => ({
+      role: msg.role === 'assistant' ? 'model' : 'user',
+      parts: [{ text: msg.content }]
+    }));
+
+    const responseStream = await ai.models.generateContentStream({
+      model: 'gemini-3-flash-preview',
+      contents: contents,
+      config: {
+        systemInstruction,
+        temperature: 0.8,
+        tools: [{ googleSearch: {} }],
+        // required when combining tools or for grounding
+      },
+    });
+
+    for await (const chunk of responseStream) {
+      if (chunk.text) {
+        yield chunk.text;
+      }
+    }
+  } catch (error) {
+    console.error("Gemini Chat Error:", error);
+    yield "I'm sorry, I encountered an error. Please try again later.";
+  }
+}
