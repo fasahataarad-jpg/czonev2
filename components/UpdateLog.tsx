@@ -1,71 +1,21 @@
 
-import React from 'react';
-import { X, GitCommit, Calendar } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { X, GitCommit, Calendar, Loader2 } from 'lucide-react';
 import { motion, Variants } from 'framer-motion';
 import { TranslatedText } from './TranslatedText';
 import { useLanguage } from '../context/LanguageContext';
+import { db } from '../firebase';
+import { collection, query, orderBy, onSnapshot } from 'firebase/firestore';
 
 interface UpdateLogProps {
   onClose: () => void;
 }
 
-const UPDATES = [
-  {
-    version: "2.1",
-    date: "2026-04-22",
-    changes: ["Added Deadpool and Wolverine & More New Movies", "Synced Website with Massive Link Database"]
-  },
-  {
-    version: "2.0",
-    date: "2026-04-16",
-    changes: ["Fixed Update Logs"]
-  },
-  {
-    version: "1.4.0",
-    date: "2026-04-02T17:03:00",
-    changes: ["Added Over 1k Games"]
-  },
-  {
-    version: "",
-    date: "2026-04-02T16:43:34",
-    changes: ["Fixed Music Player"]
-  },
-  {
-    version: "",
-    date: "2026-04-01T23:01:33",
-    changes: ["Added Super Mario Galaxy Movie"]
-  },
-  {
-    version: "1.3.0",
-    date: "2026-03-30",
-    changes: ["New Theme Added- April Fools Theme 🤡", "New Theme Added- Halloween Theme 🎃"]
-  },
-  {
-    version: "",
-    date: "2026-03-26",
-    changes: ["JJK Episode 11 and 12 have been added"]
-  },
-  {
-    version: "1.2.0",
-    date: "2026-03-26",
-    changes: ["Added Games 🎮"]
-  },
-  {
-    version: "",
-    date: "2026-03-23",
-    changes: ["Invincible Season 4 added"]
-  },
-  {
-    version: "1.1.0",
-    date: "2026-03-20",
-    changes: ["Added Cloaking, Themes, And A Movie In Website"]
-  },
-  {
-    version: "1.0.0",
-    date: "2026-03-10",
-    changes: ["Site Release 🎉"]
-  }
-];
+interface ChangelogEntry {
+  version: string;
+  date: string;
+  changes: string[];
+}
 
 const getDaysAgo = (dateStr: string, t: (k: string) => string) => {
   const date = new Date(dateStr.includes('T') ? dateStr : dateStr + "T00:00:00");
@@ -95,6 +45,17 @@ const itemVariants: Variants = {
 
 const UpdateLog: React.FC<UpdateLogProps> = ({ onClose }) => {
   const { t } = useLanguage();
+  const [updates, setUpdates] = useState<ChangelogEntry[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const q = query(collection(db, 'changelogs'), orderBy('createdAt', 'desc'));
+    const unsub = onSnapshot(q, (snapshot) => {
+      setUpdates(snapshot.docs.map(doc => doc.data() as ChangelogEntry));
+      setLoading(false);
+    });
+    return () => unsub();
+  }, []);
 
   return (
     <motion.div 
@@ -120,25 +81,32 @@ const UpdateLog: React.FC<UpdateLogProps> = ({ onClose }) => {
         animate="show"
         className="overflow-y-auto custom-scrollbar p-4 space-y-6"
       >
-        {UPDATES.map((update, idx) => (
-          <motion.div key={idx} variants={itemVariants} className="relative pl-4 border-l border-surface-hover">
-            <div className="absolute -left-[5px] top-0 w-2.5 h-2.5 rounded-full bg-surface-hover border border-[#52525b]"></div>
-            <div className="flex items-center justify-between mb-2">
-              {update.version && <span className="text-accent font-bold text-xs bg-accent/10 px-2 py-0.5 rounded-full border border-accent/20">v{update.version}</span>}
-              <span className="text-[10px] text-text-secondary font-mono flex items-center gap-1">
-                <Calendar size={10} />
-                {getDaysAgo(update.date, t)}
-              </span>
-            </div>
-            <ul className="space-y-1">
-              {update.changes.map((change, cIdx) => (
-                <li key={cIdx} className="text-xs text-[#d4d4d8] leading-relaxed">
-                  • <TranslatedText text={change} />
-                </li>
-              ))}
-            </ul>
-          </motion.div>
-        ))}
+        {loading ? (
+          <div className="py-20 flex flex-col items-center justify-center gap-3">
+             <Loader2 size={24} className="text-accent animate-spin" />
+             <span className="text-[10px] font-black uppercase tracking-widest text-neutral-500">{t('Syncing logs...')}</span>
+          </div>
+        ) : (
+          updates.map((update, idx) => (
+            <motion.div key={idx} variants={itemVariants} className="relative pl-4 border-l border-surface-hover">
+              <div className="absolute -left-[5px] top-0 w-2.5 h-2.5 rounded-full bg-surface-hover border border-[#52525b]"></div>
+              <div className="flex items-center justify-between mb-2">
+                {update.version && <span className="text-accent font-bold text-xs bg-accent/10 px-2 py-0.5 rounded-full border border-accent/20">v{update.version}</span>}
+                <span className="text-[10px] text-text-secondary font-mono flex items-center gap-1">
+                  <Calendar size={10} />
+                  {getDaysAgo(update.date, t)}
+                </span>
+              </div>
+              <ul className="space-y-1">
+                {update.changes.map((change, cIdx) => (
+                  <li key={cIdx} className="text-xs text-[#d4d4d8] leading-relaxed">
+                    • <TranslatedText text={change} />
+                  </li>
+                ))}
+              </ul>
+            </motion.div>
+          ))
+        )}
       </motion.div>
     </motion.div>
   );

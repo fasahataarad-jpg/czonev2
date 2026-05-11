@@ -557,7 +557,7 @@ const App: React.FC = () => {
                         initial={{ opacity: 0, scale: 0.95, y: 10, x: -20 }}
                         animate={{ opacity: 1, scale: 1, y: 0, x: 0 }}
                         exit={{ opacity: 0, scale: 0.95, y: 10, x: -20 }}
-                        className="absolute top-14 right-0 z-50 bg-surface border border-surface-hover rounded-2xl shadow-2xl overflow-hidden w-[400px] max-h-[80vh] flex flex-col"
+                        className="absolute top-14 right-0 z-50 bg-surface border border-surface-hover rounded-2xl shadow-2xl overflow-hidden w-[600px] max-h-[90vh] flex flex-col"
                       >
                         <Settings onClose={() => setIsSettingsOpen(false)} />
                       </motion.div>
@@ -1230,7 +1230,7 @@ const App: React.FC = () => {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
-              className="relative w-full max-w-5xl h-[80vh] bg-[#0f0f0f] rounded-3xl overflow-hidden border border-white/10 shadow-2xl"
+              className="relative w-full max-w-[95vw] h-[95vh] bg-[#0f0f0f] rounded-3xl overflow-hidden border border-white/10 shadow-2xl"
             >
               <AdminDashboard onClose={() => setIsAdminOpen(false)} isSuperAdmin={isSuperAdmin} isAdmin={isAdmin} />
             </motion.div>

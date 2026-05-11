@@ -646,7 +646,7 @@ const Settings: React.FC<SettingsProps> = ({ onClose }) => {
 
       <div className="flex flex-1 overflow-hidden z-10">
         {/* Navigation Sidebar */}
-        <div className="w-[120px] border-r border-white/5 flex flex-col p-4 gap-2 shrink-0 bg-white/[0.01]">
+        <div className="w-[160px] border-r border-white/5 flex flex-col p-6 gap-3 shrink-0 bg-white/[0.01]">
           {menuItems.map(item => {
             const Icon = item.icon;
             const isActive = item.id === activeSection;

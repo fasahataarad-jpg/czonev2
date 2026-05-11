@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Plus, Trash2, Edit2, Save, AlertCircle, CheckCircle2, ShieldCheck, Users, Megaphone, Activity, Send, Check, Ban, UserCheck, Upload, Loader2, Database, Globe, Settings as SettingsIcon, Sparkles, Search, Wand2, Eye } from 'lucide-react';
+import { X, Plus, Trash2, Edit2, Save, AlertCircle, CheckCircle2, ShieldCheck, Users, Megaphone, Activity, Send, Check, Ban, UserCheck, Upload, Loader2, Database, Globe, Settings as SettingsIcon, Sparkles, Search, Wand2, Eye, GitCommit } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { db, auth, isQuotaExceeded, handleFirestoreError, OperationType } from '../firebase';
 import { useLanguage } from '../context/LanguageContext';
@@ -43,6 +43,14 @@ interface AllowedAdmin {
   id: string;
   email: string;
   addedBy: string;
+  createdAt: Timestamp;
+}
+
+interface Changelog {
+  id: string;
+  version: string;
+  date: string;
+  changes: string[];
   createdAt: Timestamp;
 }
 
@@ -200,13 +208,19 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose, isSuperAdmin, 
   };
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [allowedAdmins, setAllowedAdmins] = useState<AllowedAdmin[]>([]);
+  const [changelogs, setChangelogs] = useState<Changelog[]>([]);
   const [newTitle, setNewTitle] = useState('');
   const [newContent, setNewContent] = useState('');
+  const [newVersion, setNewVersion] = useState('');
+  const [newDate, setNewDate] = useState(new Date().toISOString().split('T')[0]);
+  const [newChanges, setNewChanges] = useState('');
+  const [editingLogId, setEditingLogId] = useState<string | null>(null);
+  const [editingAnnouncementId, setEditingAnnouncementId] = useState<string | null>(null);
   const [newAdminEmail, setNewAdminEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'overview' | 'announcements' | 'suggestions' | 'admins' | 'analytics' | 'upload' | 'manage_uploads'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'announcements' | 'suggestions' | 'admins' | 'analytics' | 'upload' | 'manage_uploads' | 'changelog'>('overview');
   const [uploadSearchQuery, setUploadSearchQuery] = useState('');
   const [uploadFilterTab, setUploadFilterTab] = useState<'all' | 'movie' | 'anime' | 'manga' | 'tv'>('all');
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
@@ -263,12 +277,20 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose, isSuperAdmin, 
     });
     unsubsRef.current.admins = unsubAdmins;
 
+    // Changelogs (Firebase)
+    const changelogsQuery = query(collection(db, 'changelogs'), orderBy('createdAt', 'desc'));
+    const unsubChangelogs = onSnapshot(changelogsQuery, (snapshot) => {
+      setChangelogs(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Changelog)));
+    });
+    unsubsRef.current.changelogs = unsubChangelogs;
+
     // Cleanup
     return () => {
       unsubsRef.current.announcements?.();
       unsubsRef.current.suggestions?.();
       unsubsRef.current.admins?.();
       unsubsRef.current.uploads?.();
+      unsubsRef.current.changelogs?.();
     };
   }, [activeTab]);
 
@@ -318,30 +340,139 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose, isSuperAdmin, 
     setSuccess(null);
 
     try {
-      await addDoc(collection(db, 'site_announcements'), {
+      const payload = {
         title: newTitle,
         content: newContent,
         authorId: auth.currentUser?.uid || 'admin',
         active: true,
-        createdAt: serverTimestamp()
-      });
+        createdAt: editingAnnouncementId ? undefined : serverTimestamp()
+      };
+
+      if (editingAnnouncementId) {
+        await updateDoc(doc(db, 'site_announcements', editingAnnouncementId), {
+          title: newTitle,
+          content: newContent
+        });
+        setSuccess(t('Announcement updated successfully!'));
+      } else {
+        await addDoc(collection(db, 'site_announcements'), payload);
+        setSuccess(t('Announcement posted successfully!'));
+      }
+      
       setNewTitle('');
       setNewContent('');
-      setSuccess(t('Announcement posted successfully!'));
+      setEditingAnnouncementId(null);
       setTimeout(() => setSuccess(null), 3000);
     } catch (err) {
       console.error(err);
-      setError(t('Failed to post announcement.'));
+      setError(t('Failed to save announcement.'));
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  const handleEditAnnouncement = (ann: Announcement) => {
+    setEditingAnnouncementId(ann.id);
+    setNewTitle(ann.title);
+    setNewContent(ann.content);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const handleDeleteAnnouncement = async (id: string) => {
+    if (!window.confirm(t('Permanently remove this broadcast?'))) return;
     try {
       await deleteDoc(doc(db, 'site_announcements', id));
+      if (editingAnnouncementId === id) {
+        setEditingAnnouncementId(null);
+        setNewTitle('');
+        setNewContent('');
+      }
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  const handleAddChangelog = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newVersion.trim() || !newDate.trim() || !newChanges.trim()) {
+      setError(t('Complete version, date, and changes.'));
+      return;
+    }
+
+    setIsSubmitting(true);
+    setError(null);
+    setSuccess(null);
+
+    try {
+      const changesArray = newChanges.split('\n').map(c => c.trim()).filter(c => c.length > 0);
+      const payload = {
+        version: newVersion,
+        date: newDate,
+        changes: changesArray,
+        createdAt: editingLogId ? undefined : serverTimestamp()
+      };
+
+      if (editingLogId) {
+        await updateDoc(doc(db, 'changelogs', editingLogId), {
+          version: newVersion,
+          date: newDate,
+          changes: changesArray
+        });
+        setSuccess(t('Changelog updated successfully!'));
+      } else {
+        await addDoc(collection(db, 'changelogs'), payload);
+        setSuccess(t('Changelog added successfully!'));
+      }
+      
+      setNewVersion('');
+      setNewDate(new Date().toISOString().split('T')[0]);
+      setNewChanges('');
+      setEditingLogId(null);
+      setTimeout(() => setSuccess(null), 3000);
+    } catch (err) {
+      console.error(err);
+      setError(t('Failed to save changelog.'));
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleEditChangelog = (log: Changelog) => {
+    setEditingLogId(log.id);
+    setNewVersion(log.version);
+    setNewDate(log.date);
+    setNewChanges(log.changes.join('\n'));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleDeleteChangelog = async (id: string) => {
+    if (!window.confirm(t('Permanently remove this update log?'))) return;
+    try {
+      await deleteDoc(doc(db, 'changelogs', id));
+      if (editingLogId === id) {
+        setEditingLogId(null);
+        setNewVersion('');
+        setNewDate('');
+        setNewChanges('');
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleClearChangelogs = async () => {
+    if (!window.confirm(t('Are you ABSOLUTELY sure you want to WIPE the entire changelog history?'))) return;
+    setIsSubmitting(true);
+    try {
+      const promises = changelogs.map(log => deleteDoc(doc(db, 'changelogs', log.id)));
+      await Promise.all(promises);
+      setSuccess(t('Changelog cleared successfully!'));
+      setTimeout(() => setSuccess(null), 3000);
+    } catch (err) {
+      console.error(err);
+      setError(t('Failed to clear changelogs.'));
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -436,7 +567,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose, isSuperAdmin, 
   return (
     <div className="flex h-full bg-[#050505] text-white overflow-hidden font-sans selection:bg-accent/30">
       {/* Sidebar Navigation */}
-      <div className="w-20 md:w-64 border-r border-white/5 bg-black/40 backdrop-blur-3xl flex flex-col z-20 shrink-0">
+      <div className="w-20 md:w-80 border-r border-white/5 bg-black/40 backdrop-blur-3xl flex flex-col z-20 shrink-0">
         <div className="p-6 border-b border-white/5 flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg bg-accent/20 border border-accent/30 flex items-center justify-center shrink-0">
             <ShieldCheck className="w-5 h-5 text-accent" />
@@ -451,6 +582,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose, isSuperAdmin, 
           {[
             { id: 'overview', icon: Activity, label: t('Overview') },
             { id: 'announcements', icon: Megaphone, label: t('Announcements') },
+            { id: 'changelog', icon: GitCommit, label: t('Update Logs') },
             { id: 'suggestions', icon: Send, label: t('Suggestions') },
             { id: 'manage_uploads', icon: Database, label: t('Library') },
             { id: 'analytics', icon: Globe, label: t('Live Feed') },
@@ -538,7 +670,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose, isSuperAdmin, 
                           </span>
                         )}
                       </div>
-                      <div className="text-4xl font-black italic tracking-tighter mb-1 text-white group-hover:text-accent transition-colors">{s.value}</div>
+                      <div className="text-5xl font-black italic tracking-tighter mb-1 text-white group-hover:text-accent transition-colors">{s.value}</div>
                       <div className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-500">{s.label}</div>
                     </div>
                   ))}
@@ -668,7 +800,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose, isSuperAdmin, 
                          value={uploadDesc} 
                          onChange={(e) => setUploadDesc(e.target.value)} 
                          rows={4}
-                         className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-xs font-bold leading-relaxed focus:border-accent outline-none resize-none" 
+                         className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-sm font-bold leading-relaxed focus:border-accent outline-none resize-none" 
                        />
                     </div>
 
@@ -760,7 +892,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose, isSuperAdmin, 
                           placeholder={t('Search Library...')}
                           value={uploadSearchQuery}
                           onChange={(e) => setUploadSearchQuery(e.target.value)}
-                          className="bg-white/5 border border-white/10 rounded-xl px-4 py-2 pl-10 pr-10 text-[10px] font-black uppercase tracking-widest focus:border-accent outline-none w-64 transition-all"
+                          className="bg-white/5 border border-white/10 rounded-xl px-4 py-2 pl-10 pr-10 text-[10px] font-black uppercase tracking-widest focus:border-accent outline-none w-96 transition-all"
                         />
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-500 transition-colors group-focus-within:text-accent" size={14} />
                         {uploadSearchQuery && (
@@ -811,8 +943,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose, isSuperAdmin, 
                             <img src={upload.imageLink} className="w-full h-full object-cover grayscale opacity-50 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-700" referrerPolicy="no-referrer" />
                          </div>
                          <div className="min-w-0">
-                            <h4 className="font-black italic uppercase text-sm group-hover:text-accent transition-colors truncate">{upload.title}</h4>
-                            <span className="text-[9px] font-mono text-neutral-700 uppercase">{upload.id}</span>
+                            <h4 className="font-black italic uppercase text-lg group-hover:text-accent transition-colors truncate">{upload.title}</h4>
+                            <span className="text-[10px] font-mono text-neutral-700 uppercase">{upload.id}</span>
                          </div>
                          <span className="text-[10px] font-black uppercase tracking-widest text-neutral-500 px-3 py-1 rounded-full bg-white/5 border border-white/5 w-fit">{upload.type}</span>
                          <div className="flex flex-col">
@@ -870,11 +1002,12 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose, isSuperAdmin, 
                                 <div className="flex items-center justify-between mb-2">
                                   <span className={`w-2 h-2 rounded-full ${ann.active ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]' : 'bg-neutral-800'}`} />
                                   <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all">
-                                    <button onClick={() => toggleAnnouncementStatus(ann.id, ann.active)} className="p-1.5 rounded-md bg-white/5 hover:bg-accent hover:text-black transition-colors"><Edit2 size={10} /></button>
+                                    <button onClick={() => handleEditAnnouncement(ann)} className="p-1.5 rounded-md bg-white/5 hover:bg-accent hover:text-black transition-colors"><Edit2 size={10} /></button>
+                                    <button onClick={() => toggleAnnouncementStatus(ann.id, ann.active)} className="p-1.5 rounded-md bg-white/5 hover:bg-accent hover:text-black transition-colors"><ShieldCheck size={10} /></button>
                                     <button onClick={() => handleDeleteAnnouncement(ann.id)} className="p-1.5 rounded-md bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-colors"><Trash2 size={10} /></button>
                                   </div>
                                 </div>
-                                <h4 className="text-xs font-black uppercase italic truncate pr-8">{ann.title}</h4>
+                                <h4 className="text-sm font-black uppercase italic truncate pr-8">{ann.title}</h4>
                                 <p className="text-[10px] text-neutral-500 line-clamp-1 mt-1">{ann.content}</p>
                              </div>
                           ))}
@@ -882,6 +1015,104 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose, isSuperAdmin, 
                     </div>
                  </div>
               </motion.div>
+            )}
+
+            {!isLoading && activeTab === 'changelog' && (
+               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-12">
+                  <div className="flex flex-col md:flex-row gap-8">
+                     <form onSubmit={handleAddChangelog} className="flex-1 bg-white/[0.02] border border-white/5 p-8 rounded-[2rem] space-y-6">
+                        <div className="flex justify-between items-center mb-4">
+                          <h3 className="text-xl font-black italic uppercase tracking-tighter">{editingLogId ? t('Edit Log Entry') : t('New Version Log')}</h3>
+                          {editingLogId && (
+                            <button 
+                              type="button" 
+                              onClick={() => {
+                                setEditingLogId(null);
+                                setNewVersion('');
+                                setNewChanges('');
+                              }}
+                              className="text-neutral-500 hover:text-white"
+                            >
+                              <X size={18} />
+                            </button>
+                          )}
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                           <div className="space-y-2">
+                              <label className="text-[10px] font-black uppercase tracking-widest text-neutral-600 ml-2">{t('Version ID')}</label>
+                              <input
+                                type="text"
+                                placeholder="v2.5.0"
+                                value={newVersion}
+                                onChange={(e) => setNewVersion(e.target.value)}
+                                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-4 text-xs font-black uppercase tracking-widest focus:border-accent outline-none"
+                              />
+                           </div>
+                           <div className="space-y-2">
+                              <label className="text-[10px] font-black uppercase tracking-widest text-neutral-600 ml-2">{t('Release Date')}</label>
+                              <input
+                                type="date"
+                                value={newDate}
+                                onChange={(e) => setNewDate(e.target.value)}
+                                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-4 text-xs font-black uppercase tracking-widest focus:border-accent outline-none"
+                              />
+                           </div>
+                        </div>
+                        <div className="space-y-2">
+                           <label className="text-[10px] font-black uppercase tracking-widest text-neutral-600 ml-2">{t('Changes (One Per Line)')}</label>
+                           <textarea
+                             placeholder={t('Added new feature X\nFixed bug Y...')}
+                             value={newChanges}
+                             onChange={(e) => setNewChanges(e.target.value)}
+                             rows={6}
+                             className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-4 text-xs font-bold leading-relaxed focus:border-accent outline-none resize-none"
+                           />
+                        </div>
+                        <button type="submit" disabled={isSubmitting} className="w-full py-4 bg-accent text-black font-black uppercase tracking-widest text-xs rounded-xl hover:bg-accent/90 transition-all flex items-center justify-center gap-2">
+                           {editingLogId ? <Edit2 size={16} /> : <Plus size={16} />}
+                           {isSubmitting ? t('Saving...') : editingLogId ? t('Commit Changes') : t('Publish Version')}
+                        </button>
+                     </form>
+ 
+                     <div className="w-full md:w-96 space-y-4">
+                        <div className="flex items-center justify-between mb-6">
+                           <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-neutral-600">{t('Historical Manifest')}</h3>
+                           {changelogs.length > 0 && (
+                             <button 
+                               onClick={handleClearChangelogs}
+                               disabled={isSubmitting}
+                               className="text-[8px] font-black uppercase tracking-widest text-red-500 hover:text-red-400 transition-colors"
+                             >
+                               {t('Clear All')}
+                             </button>
+                           )}
+                        </div>
+                        <div className="space-y-3 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
+                           {changelogs.map(log => (
+                              <div key={log.id} className="p-5 bg-white/[0.02] border border-white/5 rounded-2xl group relative">
+                                 <div className="flex items-center justify-between mb-3">
+                                   <span className="text-accent font-black italic text-xs">v{log.version}</span>
+                                   <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                                     <button onClick={() => handleEditChangelog(log)} className="p-1.5 rounded-md bg-white/5 hover:bg-accent hover:text-black transition-colors"><Edit2 size={10} /></button>
+                                     <button onClick={() => handleDeleteChangelog(log.id)} className="p-1.5 rounded-md bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-colors"><Trash2 size={10} /></button>
+                                   </div>
+                                 </div>
+                                 <p className="text-[9px] font-mono text-neutral-600 mb-2">{log.date}</p>
+                                 <ul className="space-y-1">
+                                    {log.changes.slice(0, 3).map((change, i) => (
+                                      <li key={i} className="text-[10px] text-neutral-400 truncate tracking-tight">• {change}</li>
+                                    ))}
+                                    {log.changes.length > 3 && <li className="text-[9px] text-neutral-700 italic">+{log.changes.length - 3} more</li>}
+                                 </ul>
+                              </div>
+                           ))}
+                           {changelogs.length === 0 && (
+                             <div className="py-20 text-center text-neutral-700 text-[10px] font-black uppercase tracking-[0.5em]">{t('No Entries')}</div>
+                           )}
+                        </div>
+                     </div>
+                  </div>
+               </motion.div>
             )}
 
             {!isLoading && activeTab === 'suggestions' && (

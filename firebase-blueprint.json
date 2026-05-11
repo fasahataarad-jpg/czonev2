@@ -1,5 +1,17 @@
 {
   "entities": {
+    "changelogs": {
+      "title": "Changelog Entry",
+      "description": "Stores site update logs.",
+      "type": "object",
+      "properties": {
+        "version": { "type": "string" },
+        "date": { "type": "string" },
+        "changes": { "type": "array", "items": { "type": "string" } },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["version", "date", "changes", "createdAt"]
+    },
     "users": {
       "title": "User Profile",
       "description": "Stores user profile information and roles.",
@@ -71,15 +83,20 @@
       "properties": {
         "id": { "type": "string", "description": "Unique identifier for the upload." },
         "title": { "type": "string" },
-        "imageUrl": { "type": "string" },
-        "url": { "type": "string" },
+        "imageLink": { "type": "string" },
+        "driveLink": { "type": "string" },
         "description": { "type": "string" },
-        "year": { "type": "string" },
-        "type": { "type": "string", "enum": ["movie", "tv", "anime", "manga", "game"] },
-        "createdAt": { "type": "string", "format": "date-time" },
-        "createdBy": { "type": "string" }
+        "year": { "type": "number" },
+        "type": { "type": "string", "enum": ["movie", "tv", "anime", "manga"] },
+        "genre": { "type": "array", "items": { "type": "string" } },
+        "rating": { "type": "number" },
+        "quality": { "type": "string" },
+        "updatedBy": { "type": "string" },
+        "updatedAt": { "type": "string", "format": "date-time" },
+        "uploadedBy": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
       },
-      "required": ["title", "imageUrl", "url", "type", "createdAt"]
+      "required": ["title", "imageLink", "driveLink", "type"]
     }
   },
   "firestore": {
@@ -106,6 +123,10 @@
     "/uploads/{uploadId}": {
       "schema": "uploads",
       "description": "User and admin content uploads."
+    },
+    "/changelogs/{logId}": {
+      "schema": "changelogs",
+      "description": "Site update logs/changelogs."
     }
   }
 }
