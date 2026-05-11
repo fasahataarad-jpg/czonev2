@@ -103,6 +103,53 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', time: new Date().toISOString(), env: process.env.NODE_ENV });
 });
 
+// GA4 Proxy Route - MOVED HIGHER FOR PRIORITY
+app.get('/api/analytics/data', async (req, res) => {
+  console.log(`[Analytics] Request received from ${req.ip} for path ${req.path}`);
+  try {
+    const propertyId = '527976762';
+    
+    // Check if GA4 is configured
+    if (process.env.GA4_SERVICE_ACCOUNT_JSON) {
+      console.log('[Analytics] GA4_SERVICE_ACCOUNT_JSON found, attempting GA4 fetch...');
+      try {
+        const credentials = JSON.parse(process.env.GA4_SERVICE_ACCOUNT_JSON);
+        const analyticsDataClient = new BetaAnalyticsDataClient({
+            credentials
+        });
+
+        const [response] = await analyticsDataClient.runReport({
+          property: `properties/${propertyId}`,
+          dateRanges: [{ startDate: '30daysAgo', endDate: 'today' }],
+          metrics: [{ name: 'activeUsers' }],
+          dimensions: [{ name: 'date' }],
+        });
+
+        console.log('[Analytics] GA4 fetch successful');
+        return res.json(response);
+      } catch (e: any) {
+        console.error('[Analytics] GA4 configuration error, falling back to local analytics:', e.message);
+      }
+    } else {
+      console.log('[Analytics] GA4_SERVICE_ACCOUNT_JSON not found in environment');
+    }
+    
+    // Local Analytics Fallback
+    console.log('[Analytics] Using local analytics fallback');
+    const localData = readSingleDb('analytics');
+    console.log(`[Analytics] Local data entries: ${Object.keys(localData).length}`);
+    const rows = Object.entries(localData).map(([date, count]) => ({
+      dimensionValues: [{ value: date.replace(/-/g, '') }],
+      metricValues: [{ value: String(count) }]
+    })).sort((a: any, b: any) => a.dimensionValues[0].value.localeCompare(b.dimensionValues[0].value));
+
+    res.json({ rows });
+  } catch (error: any) {
+    console.error('[Analytics] Total failure:', error);
+    res.status(500).json({ error: 'Failed to fetch analytics', detail: error.message });
+  }
+});
+
 // Discord verification
 app.get('/.well-known/discord', (req, res) => {
   res.setHeader('Content-Type', 'text/plain');
@@ -333,51 +380,6 @@ app.use('/api/music/stream', async (req, res) => {
     } else {
       res.end();
     }
-  }
-});
-
-// GA4 Proxy Route
-app.get('/api/analytics/data', async (req, res) => {
-  console.log('[Analytics] Request received');
-  try {
-    const propertyId = '527976762';
-    
-    // Check if GA4 is configured
-    if (process.env.GA4_SERVICE_ACCOUNT_JSON) {
-      console.log('[Analytics] Attempting GA4 fetch...');
-      try {
-        const credentials = JSON.parse(process.env.GA4_SERVICE_ACCOUNT_JSON);
-        const analyticsDataClient = new BetaAnalyticsDataClient({
-            credentials
-        });
-
-        const [response] = await analyticsDataClient.runReport({
-          property: `properties/${propertyId}`,
-          dateRanges: [{ startDate: '30daysAgo', endDate: 'today' }],
-          metrics: [{ name: 'activeUsers' }],
-          dimensions: [{ name: 'date' }],
-        });
-
-        console.log('[Analytics] GA4 fetch successful');
-        return res.json(response);
-      } catch (e) {
-        console.error('[Analytics] GA4 configuration error, falling back to local analytics:', e);
-      }
-    }
-    
-    // Local Analytics Fallback
-    console.log('[Analytics] Using local analytics fallback');
-    const localData = readSingleDb('analytics');
-    console.log(`[Analytics] Local data entries: ${Object.keys(localData).length}`);
-    const rows = Object.entries(localData).map(([date, count]) => ({
-      dimensionValues: [{ value: date.replace(/-/g, '') }],
-      metricValues: [{ value: String(count) }]
-    })).sort((a: any, b: any) => a.dimensionValues[0].value.localeCompare(b.dimensionValues[0].value));
-
-    res.json({ rows });
-  } catch (error) {
-    console.error('[Analytics] Total failure:', error);
-    res.status(500).json({ error: 'Failed to fetch analytics' });
   }
 });
 

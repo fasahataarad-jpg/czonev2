@@ -734,25 +734,37 @@ const AnalyticsTab = ({ hideHeader = false }: { hideHeader?: boolean }) => {
     useEffect(() => {
         setLoading(true);
         const url = `/api/analytics/data`;
-        console.log(`[Debug] Admin fetching analytics from: ${window.location.origin}${url}`);
+        const fullUrl = `${window.location.origin}${url}`;
+        console.log(`[Debug] Admin fetching analytics from: ${fullUrl}`);
+        
+        setError(null);
         fetch(url)
-            .then(res => {
-                if (!res.ok) throw new Error('Failed to fetch analytics');
+            .then(async res => {
+                if (!res.ok) {
+                    const text = await res.text();
+                    console.error(`[Analytics] API Error ${res.status}: ${text}`);
+                    throw new Error(`Failed to fetch analytics: ${res.status} ${res.statusText}`);
+                }
                 return res.json();
             })
             .then(data => {
+                console.log('[Analytics] Data received:', data);
                 // Map GA4/Local data to a format Recharts can use
-                const formattedData = (data.rows || []).map((row: any) => ({
-                    date: row.dimensionValues[0].value.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3'),
-                    activeUsers: parseInt(row.metricValues[0].value, 10)
+                const rows = data.rows || [];
+                if (rows.length === 0) {
+                     console.warn('[Analytics] No data rows returned');
+                }
+                const formattedData = rows.map((row: any) => ({
+                    date: row.dimensionValues?.[0]?.value?.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3') || 'Unknown',
+                    activeUsers: parseInt(row.metricValues?.[0]?.value || '0', 10)
                 })).sort((a: any, b: any) => a.date.localeCompare(b.date));
                 
                 setData(formattedData);
                 setLoading(false);
             })
             .catch(err => {
-                console.error('Analytics Fetch Error:', err);
-                setError('Failed to load analytics data.');
+                console.error('[Analytics] Fetch Error:', err);
+                setError(`Analytics Error: ${err.message || 'Unknown error'}`);
                 setLoading(false);
             });
     }, []);
