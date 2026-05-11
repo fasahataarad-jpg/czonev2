@@ -236,7 +236,7 @@ const App: React.FC = () => {
         setIsAuthReady(true);
         setUser(currentUser);
         
-        const adminEmails = ['darkfn1234567890@gmail.com', 'calabcoleman2187@gmail.com', 'raypolebobby15@gmail.com'];
+        const adminEmails = ['darkfn1234567890@gmail.com', 'calabcoleman2187@gmail.com', 'raypolebobby15@gmail.com', 'cringboi9000@gmail.com'];
         
         if (currentUser && currentUser.email) {
             setIsAdmin(adminEmails.includes(currentUser.email.toLowerCase()));

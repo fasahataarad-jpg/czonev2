@@ -7,7 +7,7 @@ export const getWikiIntelligence = async (title: string) => {
   if (!title || title.length < 2) return null;
 
   try {
-    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || process.env.API_KEY || '' });
+    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
       contents: `Search for real-world information about "${title}". 
@@ -40,7 +40,7 @@ export const getQueryAestheticDescription = async (query: string) => {
   if (!query || query.length < 3) return null;
 
   try {
-    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || process.env.API_KEY || '' });
+    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
       contents: `Generate a short, 1-sentence cinematic theme for this search: "${query}". 
@@ -67,7 +67,7 @@ export const translateText = async (text: string, targetLanguage: string) => {
   if (!text || !targetLanguage || targetLanguage === 'en-US') return text;
 
   try {
-    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || process.env.API_KEY || '' });
+    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
       contents: `Translate the following text into ${targetLanguage}. Only return the translated text, nothing else.
@@ -90,7 +90,7 @@ export const translateText = async (text: string, targetLanguage: string) => {
  */
 export async function* streamChat(messages: { role: string; content: string }[], systemInstruction: string) {
   try {
-    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || process.env.API_KEY || '' });
+    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
     
     // Map roles: user -> user, assistant -> model
     const contents = messages.map(msg => ({
