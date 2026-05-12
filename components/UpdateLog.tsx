@@ -1,11 +1,9 @@
 
-import React, { useEffect, useState } from 'react';
-import { X, GitCommit, Calendar, Loader2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { X, GitCommit, Calendar } from 'lucide-react';
 import { motion, Variants } from 'framer-motion';
 import { TranslatedText } from './TranslatedText';
 import { useLanguage } from '../context/LanguageContext';
-import { db } from '../firebase';
-import { collection, query, orderBy, onSnapshot } from 'firebase/firestore';
 
 interface UpdateLogProps {
   onClose: () => void;
@@ -17,7 +15,18 @@ interface ChangelogEntry {
   changes: string[];
 }
 
+const CHANGELOG_DATA: ChangelogEntry[] = [
+  {
+    version: "3.0.0",
+    date: "2026-05-12",
+    changes: [
+      "Revamped Site ( Hope Yall Enjoy)"
+    ]
+  }
+];
+
 const getDaysAgo = (dateStr: string, t: (k: string) => string) => {
+  if (!dateStr) return '';
   const date = new Date(dateStr.includes('T') ? dateStr : dateStr + "T00:00:00");
   const now = new Date();
   now.setHours(0, 0, 0, 0);
@@ -45,20 +54,7 @@ const itemVariants: Variants = {
 
 const UpdateLog: React.FC<UpdateLogProps> = ({ onClose }) => {
   const { t } = useLanguage();
-  const [updates, setUpdates] = useState<ChangelogEntry[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const q = query(collection(db, 'changelogs'), orderBy('createdAt', 'desc'));
-    const unsub = onSnapshot(q, (snapshot) => {
-      setUpdates(snapshot.docs.map(doc => doc.data() as ChangelogEntry));
-      setLoading(false);
-    }, (error) => {
-      console.error("Changelog Sync Error:", error);
-      setLoading(false);
-    });
-    return () => unsub();
-  }, []);
+  const [updates] = useState<ChangelogEntry[]>(CHANGELOG_DATA);
 
   return (
     <motion.div 
@@ -84,10 +80,10 @@ const UpdateLog: React.FC<UpdateLogProps> = ({ onClose }) => {
         animate="show"
         className="overflow-y-auto custom-scrollbar p-4 space-y-6"
       >
-        {loading ? (
-          <div className="py-20 flex flex-col items-center justify-center gap-3">
-             <Loader2 size={24} className="text-accent animate-spin" />
-             <span className="text-[10px] font-black uppercase tracking-widest text-neutral-500">{t('Syncing logs...')}</span>
+        {updates.length === 0 ? (
+          <div className="py-20 flex flex-col items-center justify-center opacity-40">
+             <GitCommit size={32} className="mb-2" />
+             <span className="text-[10px] font-black uppercase tracking-widest">{t('No updates yet')}</span>
           </div>
         ) : (
           updates.map((update, idx) => (
