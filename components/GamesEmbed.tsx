@@ -288,24 +288,6 @@ export default function GamesEmbed() {
     margin-bottom: 2rem;
   }
 
-  .discord-link {
-    display: inline-block;
-    background: rgba(88, 101, 242, 0.2);
-    border: 1px solid #5865F2;
-    color: #fff;
-    text-decoration: none;
-    padding: 0.8rem 1.5rem;
-    border-radius: 12px;
-    font-weight: 600;
-    margin-bottom: 1.5rem;
-    transition: all 0.3s ease;
-  }
-
-  .discord-link:hover {
-    background: #5865F2;
-    box-shadow: 0 8px 20px rgba(88, 101, 242, 0.4);
-    transform: translateY(-2px);
-  }
 
   .primary-btn {
     background: rgba(0, 0, 0, 0.3);
@@ -378,37 +360,12 @@ export default function GamesEmbed() {
     <div id="fullscreenHeader">
       <h2 id="gameTitle">Game Title</h2>
       <div class="header-controls">
-        <button id="blankBtn" class="header-btn" title="Open in about:blank tab"><i class="fa-solid fa-up-right-from-square"></i></button>
         <button id="downloadBtn" class="header-btn" title="Download Game"><i class="fas fa-download"></i></button>
         <button id="fullscreenBtn" class="header-btn" title="Fullscreen"><i class="fas fa-expand"></i></button>
         <button id="closeFullscreen" class="header-btn" title="Close"><i class="fas fa-times"></i></button>
       </div>
     </div>
     <iframe id="zoneFullscreenFrame"></iframe>
-  </div>
-</div>
-
-<div id="noticeModal" class="alert-backdrop">
-  <div id="gameModal">
-    <div id="fullscreenHeader">
-      <h2 id="gameTitle">Game Title</h2>
-      <div class="header-controls">
-        <button id="blankBtn" class="header-btn" title="Open in about:blank tab"><i class="fa-solid fa-up-right-from-square"></i></button>
-        <button id="downloadBtn" class="header-btn" title="Download Game"><i class="fas fa-download"></i></button>
-        <button id="fullscreenBtn" class="header-btn" title="Fullscreen"><i class="fas fa-expand"></i></button>
-        <button id="closeFullscreen" class="header-btn" title="Close"><i class="fas fa-times"></i></button>
-      </div>
-    </div>
-    <iframe id="zoneFullscreenFrame"></iframe>
-  </div>
-</div>
-
-<div id="noticeModal" class="alert-backdrop">
-  <div class="alert-modal">
-    <h3>!Notice!</h3>
-    <p>I do not own these links; they belong to the truffled community. Please don't get pissed off, if you want a link removed, dm me on discord (<strong>dominus.elitus</strong>). Y'all should support fr support them tho :)</p>
-    <a href="https://discord.gg/czone" target="_blank" class="discord-link"><i class="fab fa-discord"></i> Truffled Discord</a>
-    <button id="noticeContinueBtn" class="primary-btn">Continue</button>
   </div>
 </div>
 
@@ -485,10 +442,6 @@ function handleProviderChange() {
   }
 
   if (provider === 'truffled') {
-    if (!localStorage.getItem('truffledNoticeSeen')) {
-      document.getElementById('noticeModal').style.display = 'flex';
-      return; 
-    }
     truffledProxySelect.style.display = 'block';
   } else {
     truffledProxySelect.style.display = 'none';
@@ -497,12 +450,6 @@ function handleProviderChange() {
   loadGames();
 }
 
-document.getElementById('noticeContinueBtn').onclick = () => {
-  localStorage.setItem('truffledNoticeSeen', 'true');
-  document.getElementById('noticeModal').style.display = 'none';
-  truffledProxySelect.style.display = 'block';
-  loadGames();
-};
 
 async function loadGames() {
   container.innerHTML = '<div style="width:100%; text-align:center; padding: 2rem; color: var(--blue); font-size: 1.2rem;"><i class="fas fa-circle-notch fa-spin"></i> Fetching games...</div>';
@@ -890,49 +837,7 @@ fullscreenBtn.onclick = () => {
 
 handleProviderChange();
 
-const blankBtn = document.getElementById('blankBtn');
-
-blankBtn.addEventListener('click', () => {
-    const currentUrl = iframe.src;
-    
-    if (!currentUrl) return;
-
-    const blankWin = window.open('about:blank', '_blank');
-    
-    if (!blankWin) {
-        alert("Please allow pop-ups to open games in a blank tab.");
-        return;
-    }
-
-    const doc = blankWin.document;
-    doc.open();
-    doc.write(\`
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
-            <title>Google Drive</title> <link rel="icon" href="https://ssl.gstatic.com/docs/doclist/images/drive_2022q3_32dp.png"> <style>
-                body, html { 
-                    margin: 0; 
-                    padding: 0; 
-                    width: 100vw; 
-                    height: 100vh; 
-                    overflow: hidden; 
-                    background-color: #000; 
-                }
-                iframe { 
-                    width: 100%; 
-                    height: 100%; 
-                    border: none; 
-                }
-            </style>
-        </head>
-        <body>
-            <iframe src="\${currentUrl}"></iframe>
-        </body>
-        </html>
-    \`);
-    doc.close();
-});
+handleProviderChange();
 </script>
 
 <script>

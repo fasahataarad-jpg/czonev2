@@ -69,7 +69,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose, showCloseButton = true }
             {mode === 'login' ? t('Welcome Back') : t('Create Account')}
           </h2>
           <p className="text-[10px] font-black uppercase tracking-widest text-neutral-500">
-            {mode === 'login' ? t('Sign in to your account') : t('Join the Discord')}
+            {mode === 'login' ? t('Sign in to your account') : t('Create your account')}
           </p>
         </div>
         {showCloseButton && (

@@ -38,7 +38,7 @@ const Home: React.FC<HomeProps> = ({ onNavigate, onSearch }) => {
 
   const sections = [
     {
-      title: t("Welcome to Monochrome!"),
+      title: t("Welcome to FasahatHub v2!"),
       desc: t("Browse the web freely. Let's show you around."),
       icon: <Globe className="text-accent" size={32} />,
     },
@@ -62,11 +62,6 @@ const Home: React.FC<HomeProps> = ({ onNavigate, onSearch }) => {
       desc: t("Use the site online at least once to use the site offline."),
       icon: <WifiOff className="text-accent" size={32} />,
     },
-    {
-      title: t("Tab Cloaking"),
-      desc: t("In the settings, click 'Cloak' to disguise the tab into an about:blank page!"),
-      icon: <Shield className="text-accent" size={32} />,
-    }
   ];
 
   return (
@@ -83,7 +78,7 @@ const Home: React.FC<HomeProps> = ({ onNavigate, onSearch }) => {
           transition={{ duration: 0.5, type: "spring" }}
           className="text-8xl md:text-9xl font-display uppercase tracking-tighter leading-none"
         >
-          CHILL<span className="text-accent">ZONE</span>
+          FASAHAT<span className="text-accent">HUB</span>
         </motion.h1>
         
         <motion.form 
@@ -138,41 +133,7 @@ const Home: React.FC<HomeProps> = ({ onNavigate, onSearch }) => {
         ))}
       </motion.div>
 
-      <motion.div 
-        initial={{ opacity: 0, y: 40 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.6 }}
-        className="pt-20 text-center space-y-12"
-      >
-        <div className="space-y-4">
-          <h2 className="text-4xl font-display uppercase tracking-tight text-white italic">{t('Our')} <span className="text-accent">{t('Partners')}</span></h2>
-          <p className="text-text-secondary font-medium">{t('Trusted allies in the decentralized web.')}</p>
-        </div>
-        
-        <div className="flex flex-wrap justify-center gap-8">
-          {[
-            { name: "Helium", url: "https://sites.google.com/view/a7b9c1d3e5f2g4h6i8j0k9l1m3n5o2" },
-            { name: "カービィアーケード", url: "https://sites.google.com/view/fus3-bomb/page" },
-            { name: "ZGC", url: "https://zgcv2.netlify.app" }
-          ].map((p, i) => (
-            <motion.a 
-              key={i} 
-              href={p.url} 
-              target="_blank" 
-              whileHover={{ scale: 1.05, y: -2 }}
-              whileTap={{ scale: 0.95 }}
-              className="px-8 py-4 bg-surface-hover/30 border border-white/5 rounded-2xl text-text-muted font-black uppercase tracking-widest text-[10px] hover:border-accent/30 hover:text-white transition-colors"
-            >
-              {p.name}
-            </motion.a>
-          ))}
-        </div>
 
-        <p className="text-text-muted text-[10px] font-black uppercase tracking-[0.5em] pt-20">
-          {t('Digital Audio Library Access')}
-        </p>
-      </motion.div>
     </motion.div>
   );
 };

@@ -113,7 +113,7 @@ export const ChillZoneLogo: React.FC<{ size?: number; className?: string }> = ({
                   lineHeight: 1
                 }}
               >
-                ChillZone
+                FasahatHub
               </motion.h1>
               
               {/* Glitch Overlay */}
@@ -126,7 +126,7 @@ export const ChillZoneLogo: React.FC<{ size?: number; className?: string }> = ({
                 className="absolute inset-0 font-black italic uppercase tracking-tighter text-cyan-500 mix-blend-screen overflow-hidden whitespace-nowrap"
                 style={{ fontSize: size * 0.22, lineHeight: 1 }}
               >
-                ChillZone
+                FasahatHub
               </motion.h1>
               <motion.h1
                 animate={{
@@ -137,7 +137,7 @@ export const ChillZoneLogo: React.FC<{ size?: number; className?: string }> = ({
                 className="absolute inset-0 font-black italic uppercase tracking-tighter text-red-500 mix-blend-screen overflow-hidden whitespace-nowrap"
                 style={{ fontSize: size * 0.22, lineHeight: 1 }}
               >
-                ChillZone
+                FasahatHub
               </motion.h1>
             </div>
           </motion.div>

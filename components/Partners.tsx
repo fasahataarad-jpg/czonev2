@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PARTNERS_DATA } from '../constants';
 import { PartnerItem } from '../types';
-import { MessageSquare, Globe, ArrowUpRight } from 'lucide-react';
+import { Globe, ArrowUpRight } from 'lucide-react';
 import PartnerModal from './PartnerModal';
 import { useLanguage } from '../context/LanguageContext';
 import { TranslatedText } from './TranslatedText';
@@ -72,11 +72,6 @@ const Partners: React.FC = () => {
                     className="relative w-full h-full rounded-[28px] object-cover shadow-2xl border-2 border-white/10 group-hover:border-white/30 transition-all duration-700"
                     referrerPolicy="no-referrer"
                   />
-                  {partner.discord && (
-                    <div className="absolute -bottom-2 -right-2 w-10 h-10 bg-[#5865F2] rounded-full flex items-center justify-center border-4 border-[#0a0a0a] shadow-xl group-hover:rotate-12 transition-transform duration-500 delay-100">
-                      <MessageSquare size={16} className="text-white" />
-                    </div>
-                  )}
                 </div>
 
                 {/* Typography */}
@@ -97,17 +92,6 @@ const Partners: React.FC = () => {
                   >
                     <TranslatedText text="Explore" /> <ArrowUpRight size={18} />
                   </button>
-                  {partner.discord && (
-                    <a
-                      href={partner.discord}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="w-14 h-14 flex items-center justify-center bg-[#5865F2]/10 text-[#5865F2] hover:bg-[#5865F2] hover:text-white hover:shadow-[0_0_20px_rgba(88,101,242,0.4)] rounded-2xl transition-all hover:scale-105 active:scale-95 shrink-0"
-                      title={t('Join Discord')}
-                    >
-                      <MessageSquare size={20} />
-                    </a>
-                  )}
                 </div>
               </motion.div>
             ))}

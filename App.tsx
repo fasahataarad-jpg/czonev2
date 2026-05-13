@@ -3,11 +3,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Sidebar from './components/Sidebar';
 import LibrarySection from './components/LibrarySection';
 import Settings, { defaultThemes } from './components/Settings';
-import Partners from './components/Partners';
 import UpdateLog from './components/UpdateLog';
 import DateTimeWidget from './components/DateTimeWidget';
 import { Category, LibraryItem, StaffMember, Game, FavoriteItem } from './types';
-import { MOVIES_DATA, ANIME_DATA, MANGA_DATA, TV_DATA, STAFF_DATA, PARTNERS_DATA, PROXIES_DATA } from './constants';
+import { MOVIES_DATA, ANIME_DATA, MANGA_DATA, TV_DATA, STAFF_DATA, PROXIES_DATA } from './constants';
 import { useLanguage } from './context/LanguageContext';
 import { auth, db, logout as firebaseLogout, handleFirestoreError, OperationType, isQuotaExceeded } from './firebase'; 
 import { onAuthStateChanged, User } from 'firebase/auth'; 
@@ -16,31 +15,16 @@ import { collection, query, orderBy, onSnapshot } from 'firebase/firestore';
 import AdminDashboard from './components/AdminDashboard';
 import AuthModal from './components/AuthModal';
 import SuggestionModal from './components/SuggestionModal';
-import AIChat from './components/AIChat';
-import DonatePage from './components/DonatePage';
 import ProxiesPage from './components/ProxiesPage';
-import StaffPage from './components/StaffPage';
 import GamesEmbed from './components/GamesEmbed';
 import MusicPlayer from './components/MusicPlayer';
 import { SiteAnnouncements } from './components/SiteAnnouncements';
 import { ChillZoneLogo } from './components/ChillZoneLogo';
 import { TranslatedText } from './components/TranslatedText';
-import { Search, X, Film, Sparkles, BookOpen, Tv, SearchX, PlayCircle, Star, Globe, Users, ExternalLink, ShieldAlert, Zap, Activity, Loader2, Book, AlertTriangle, Settings as SettingsIcon, GitCommit, ChevronDown, LayoutGrid, Gamepad2, ShieldCheck, LogOut, LogIn, Send, Music, MessageSquare, Menu, Columns } from 'lucide-react';
+import { Search, X, Film, Sparkles, BookOpen, Tv, SearchX, PlayCircle, Star, Globe, Users, ShieldAlert, Zap, Activity, Loader2, Book, AlertTriangle, Settings as SettingsIcon, GitCommit, ChevronDown, LayoutGrid, Gamepad2, ShieldCheck, LogOut, LogIn, Send, Music, Menu, Columns } from 'lucide-react';
 
 const DEFAULT_LOGO = "/logo.svg";
 
-const DiscordIcon = ({ size = 20, className = "" }: { size?: number, className?: string }) => (
-  <svg 
-    width={size} 
-    height={size} 
-    viewBox="0 0 24 24" 
-    fill="currentColor" 
-    className={className}
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1971.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189z"/>
-  </svg>
-);
 
 const ScrambleEffect: React.FC = () => {
   useEffect(() => {
@@ -106,14 +90,14 @@ const ScrambleEffect: React.FC = () => {
 
 const getInitialCategory = (): Category => {
   const path = window.location.pathname.substring(1).toLowerCase();
-  if (!path) return 'donate';
+  if (!path) return 'home';
   const normalizedPath = path.replace('-', ' ') as Category;
-  const validCategories: Category[] = ['home', 'movies', 'tv shows', 'anime', 'manga', 'proxies', 'partners', 'dev', 'support', 'donate', 'apps', 'browser', 'settings', 'games', 'socials', 'ai'];
+  const validCategories: Category[] = ['home', 'movies', 'tv shows', 'anime', 'manga', 'proxies', 'support', 'apps', 'browser', 'settings', 'games', 'socials'];
   
   if (validCategories.includes(normalizedPath)) {
     return normalizedPath;
   }
-  return 'donate';
+  return 'home';
 };
 
 const App: React.FC = () => {
@@ -136,12 +120,7 @@ const App: React.FC = () => {
 
   const navigate = (cat: Category) => {
     setActiveCategory(cat);
-    let path = '';
-    if (cat === 'donate') {
-      path = '/';
-    } else {
-      path = '/' + cat.replace(' ', '-');
-    }
+    const path = '/' + cat.replace(' ', '-');
     window.history.pushState({}, '', path);
   };
 
@@ -178,7 +157,6 @@ const App: React.FC = () => {
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isSuggestionModalOpen, setIsSuggestionModalOpen] = useState(false);
-  const [isAIChatOpen, setIsAIChatOpen] = useState(false);
   const [hasOpenedUpdateLog, setHasOpenedUpdateLog] = useState(false);
   const [user, setUser] = useState<any | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -305,8 +283,6 @@ const App: React.FC = () => {
           setIsAdminOpen(false);
         } else if (isSuggestionModalOpen) {
           setIsSuggestionModalOpen(false);
-        } else if (isAIChatOpen) {
-          setIsAIChatOpen(false);
         }
       }
     };
@@ -328,16 +304,16 @@ const App: React.FC = () => {
     const handlePopState = () => {
       const path = window.location.pathname.substring(1).toLowerCase();
       if (!path) {
-        setActiveCategory('donate');
+        setActiveCategory('home');
         return;
       }
       const normalizedPath = path.replace('-', ' ') as Category;
-      const validCategories: Category[] = ['home', 'movies', 'tv shows', 'anime', 'manga', 'music', 'proxies', 'partners', 'dev', 'support', 'donate', 'apps', 'browser', 'settings', 'games', 'socials', 'ai'];
+      const validCategories: Category[] = ['home', 'movies', 'tv shows', 'anime', 'manga', 'music', 'proxies', 'support', 'apps', 'browser', 'settings', 'games', 'socials'];
       
       if (validCategories.includes(normalizedPath)) {
         setActiveCategory(normalizedPath);
       } else {
-        setActiveCategory('donate');
+        setActiveCategory('home');
       }
     };
     window.addEventListener('popstate', handlePopState);
@@ -482,20 +458,6 @@ const App: React.FC = () => {
         )}
         
         <main className="flex-1 flex flex-col min-w-0 h-full relative z-10">
-          {/* Donation Banner */}
-          <div className="bg-black/40 backdrop-blur-sm text-white py-2 px-6 text-[10px] font-black uppercase tracking-widest z-[60] relative flex items-center border-b border-white/5 overflow-hidden">
-            <div className="flex-1 overflow-hidden relative h-5 flex items-center">
-              <div className="animate-marquee absolute w-full text-left">
-                <TranslatedText text="Don't Forget You Can Pay For Custom Movies, Animes, Tv Shows, OR WTV U Want!" />
-              </div>
-            </div>
-            <button 
-              onClick={() => navigate('donate')} 
-              className="bg-accent/20 hover:bg-accent/30 border border-accent/30 px-4 py-1 rounded-full text-[9px] font-black uppercase tracking-tighter transition-all shrink-0 ml-4 z-10 relative hover:scale-105"
-            >
-              {t('Donate')}
-            </button>
-          </div>
 
           <header className="sticky top-0 z-40 border-b border-white/5 p-4 md:px-8 md:py-6 flex justify-between items-center shrink-0 bg-bg/20 backdrop-blur-xl">
             <div className="flex items-center gap-6">
@@ -626,17 +588,6 @@ const App: React.FC = () => {
                 {user ? <LogOut size={18} /> : <LogIn size={18} />}
               </motion.button>
 
-              <motion.a 
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                href="https://discord.gg/czone" 
-                target="_blank" 
-                rel="noopener noreferrer" 
-                className="w-10 h-10 flex items-center justify-center rounded-xl bg-surface-hover border border-white/5 text-text-secondary hover:text-[#5865F2] hover:border-[#5865F2]/50 transition-all duration-300 relative"
-                title={t('Discord')}
-              >
-                <DiscordIcon size={18} />
-              </motion.a>
             </div>
           </header>
 
@@ -717,7 +668,7 @@ const App: React.FC = () => {
                             className="relative z-10"
                           >
                             <h1 className="text-7xl md:text-[10rem] font-black uppercase italic tracking-tighter text-white mb-16 drop-shadow-2xl">
-                              {t('ChillZone')}
+                              {t('FasahatHub v2')}
                             </h1>
                             <div className="flex flex-wrap justify-center gap-6">
                               <motion.button
@@ -737,49 +688,10 @@ const App: React.FC = () => {
                               >
                                 {t('Meet Team')} <Users size={20} />
                               </motion.button>
-                              <motion.a
-                                href="https://discord.gg/czone"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                whileHover={{ scale: 1.05, boxShadow: "0 0 50px rgba(88,101,242,0.5)" }}
-                                whileTap={{ scale: 0.95 }}
-                                className="bg-[#5865F2] text-white px-12 py-6 rounded-[22px] font-black uppercase tracking-widest text-base italic transition-all flex items-center gap-4"
-                              >
-                                {t('Discord')} <DiscordIcon size={22} />
-                              </motion.a>
                             </div>
                           </motion.div>
                         </div>
 
-                        {/* Discord Ad Banner */}
-                        <motion.div 
-                          whileHover={{ scale: 1.02 }}
-                          className="relative w-full rounded-[40px] overflow-hidden bg-gradient-to-br from-[#5865F2]/20 to-bg border border-[#5865F2]/30 p-10 md:p-14 flex flex-col md:flex-row items-center justify-between gap-8 group"
-                        >
-                          <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-[#5865F2]/20 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/4 pointer-events-none group-hover:bg-[#5865F2]/30 transition-colors duration-700" />
-                          <div className="relative z-10 flex-1">
-                            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#5865F2]/20 text-[#5865F2] font-black text-xs uppercase tracking-widest mb-6 border border-[#5865F2]/30">
-                              <DiscordIcon size={14} /> <TranslatedText text="Official Community" />
-                            </div>
-                            <h2 className="text-4xl md:text-5xl font-black italic uppercase tracking-tighter text-white mb-4">
-                              <TranslatedText text="Join the" /> <span className="text-[#5865F2]">Discord</span>
-                            </h2>
-                            <p className="text-text-secondary text-lg font-medium max-w-xl">
-                              <TranslatedText text="Request new movies, get notified of fresh drops, report broken links, and chill with the community." />
-                            </p>
-                          </div>
-                          <motion.a
-                            href="https://discord.gg/czone"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            whileHover={{ scale: 1.05, rotate: 2 }}
-                            whileTap={{ scale: 0.95 }}
-                            className="relative z-10 shrink-0 bg-[#5865F2] hover:bg-[#4752C4] text-white px-12 py-6 rounded-[24px] font-black uppercase tracking-widest text-lg italic transition-colors shadow-[0_0_40px_rgba(88,101,242,0.3)] flex items-center gap-4"
-                          >
-                            <span><TranslatedText text="Join?" /></span>
-                            <MessageSquare size={24} />
-                          </motion.a>
-                        </motion.div>
 
                         {/* Recent Discoveries */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
@@ -869,25 +781,10 @@ const App: React.FC = () => {
                             <span><TranslatedText text="Socials" /></span>
                             <span><TranslatedText text="Anime" /></span>
                           </div>
-                          <a 
-                            href="https://acceptancesuicidegel.com/dhmpuxem?key=076e82e715f14b0cdae05e67b91cb136" 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="text-white/30 hover:text-accent text-[8px] font-bold uppercase tracking-widest transition-colors"
-                          >
-                            chillz0ne.dev
-                          </a>
                         </div>
                       </motion.div>
                     )}
 
-                    {activeCategory === 'dev' && (
-                      <StaffPage />
-                    )}
-
-                    {activeCategory === 'donate' && (
-                      <DonatePage />
-                    )}
 
                     {activeCategory === 'games' && (
                       <GamesEmbed />
@@ -999,13 +896,6 @@ const App: React.FC = () => {
                       <ProxiesPage />
                     )}
 
-                    {activeCategory === 'ai' && (
-                      <div className="flex-1 flex flex-col h-full bg-[#050505]">
-                        <AIChat isOpen={true} onClose={() => {}} isEmbedded={true} />
-                      </div>
-                    )}
-
-                    {activeCategory === 'partners' && <Partners />}
 
                     {activeCategory === 'socials' && (
                       <motion.div
@@ -1119,14 +1009,6 @@ const App: React.FC = () => {
                     >
                       <X size={24} />
                     </button>
-                    <a 
-                      href={selectedItem.item.l}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="absolute top-4 right-4 z-50 bg-bg/80 hover:bg-accent p-4 rounded-2xl transition-all duration-300 border border-white/5 text-white flex items-center gap-2"
-                    >
-                      <ExternalLink size={20} /> <span className="text-xs font-bold uppercase tracking-wider hidden md:block"><TranslatedText text="Open Externally" /></span>
-                    </a>
                     <iframe 
                       src={iframeUrl}
                       className="w-full h-full"
@@ -1197,10 +1079,6 @@ const App: React.FC = () => {
         )}
       </AnimatePresence>
 
-      {/* AI Chat Popup (only when NOT on AI page) */}
-      {activeCategory !== 'ai' && (
-        <AIChat isOpen={isAIChatOpen} onClose={() => setIsAIChatOpen(false)} />
-      )}
 
       <AnimatePresence>
         {isAuthModalOpen && (

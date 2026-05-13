@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { ShieldCheck, Code, Stars, Github, Globe, MessageSquare, Heart, Sparkles, ExternalLink } from 'lucide-react';
+import { ShieldCheck, Code, Stars, Globe, Heart, Sparkles, ExternalLink } from 'lucide-react';
 import { STAFF_DATA } from '../constants';
 import { useLanguage } from '../context/LanguageContext';
 import { TranslatedText } from './TranslatedText';
@@ -113,17 +113,6 @@ const StaffPage: React.FC = () => {
                     </a>
                   )}
 
-                  {member.github && (
-                    <a 
-                        href={member.github} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="w-full py-3 bg-[#24292e] hover:bg-black text-white text-[10px] font-black italic uppercase tracking-[0.2em] rounded-xl transition-all flex items-center justify-center gap-2 active:scale-95 border border-white/5"
-                    >
-                        <Github size={14} />
-                        {t('GitHub')}
-                    </a>
-                  )}
                 </div>
             </div>
 

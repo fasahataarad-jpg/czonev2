@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { VenetianMask, Palette, ChevronDown, Edit2, X, ExternalLink, Globe, User, Trash2, AlertTriangle, Settings as SettingsIcon } from 'lucide-react';
+import { Palette, ChevronDown, Edit2, X, Globe, User, Trash2, AlertTriangle, Settings as SettingsIcon } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLanguage } from '../context/LanguageContext';
 import { auth, db, handleFirestoreError, OperationType, isQuotaExceeded } from '../firebase';
@@ -133,20 +133,6 @@ export const defaultThemes: Record<string, Theme> = {
   }
 };
 
-const CLOAK_PRESETS = [
-  { id: 'google', label: 'Google', title: 'Google', icon: 'https://www.google.com/favicon.ico' },
-  { id: 'drive', label: 'My Drive - Google Drive', title: 'My Drive - Google Drive', icon: 'https://ssl.gstatic.com/images/branding/product/1x/drive_2020q4_32dp.png' },
-  { id: 'classroom', label: 'Classes', title: 'Classes', icon: 'https://ssl.gstatic.com/classroom/favicon.png' },
-  { id: 'clever', label: 'Clever | Portal', title: 'Clever | Portal', icon: 'https://assets.clever.com/resource-icons/apps/5c6d1ba5626d0800015b6b10/icon_226591b.png' },
-  { id: 'canvas', label: 'Dashboard', title: 'Dashboard', icon: 'https://canvas.instructure.com/favicon.ico' },
-  { id: 'schoology', label: 'Home | Schoology', title: 'Home | Schoology', icon: 'https://asset-cdn.schoology.com/sites/all/themes/schoology_theme/favicon.ico' },
-  { id: 'kahoot', label: 'Kahoot!', title: 'Kahoot!', icon: 'https://kahoot.com/favicon.ico' },
-  { id: 'quizlet', label: 'Quizlet', title: 'Quizlet', icon: 'https://quizlet.com/favicon.ico' },
-  { id: 'desmos', label: 'Desmos | Graphing Calculator', title: 'Desmos | Graphing Calculator', icon: 'https://www.desmos.com/favicon.ico' },
-  { id: 'khan', label: 'Khan Academy', title: 'Khan Academy', icon: 'https://cdn.kastatic.org/images/favicon.ico' },
-  { id: 'custom', label: 'Custom', title: '', icon: '' },
-];
-
 const CustomSelect = ({ value, options, onChange }: any) => {
   const [isOpen, setIsOpen] = useState(false);
   const selectRef = useRef<HTMLDivElement>(null);
@@ -222,7 +208,6 @@ const ColorPickerItem = ({ label, colorKey, value, isCustom, onChange }: any) =>
 
 const menuItems = [
   { id: 'theme', label: 'Theme', icon: Palette },
-  { id: 'cloak', label: 'Cloak', icon: VenetianMask },
   { id: 'language', label: 'Language', icon: Globe },
   { id: 'account', label: 'Account', icon: User },
 ];
@@ -369,10 +354,6 @@ const Settings: React.FC<SettingsProps> = ({ onClose }) => {
     });
     return themes;
   });
-
-  const [cloakPreset, setCloakPreset] = useState('google');
-  const [customTitle, setCustomTitle] = useState(localStorage.getItem('siteTitle') || 'Google');
-  const [customIcon, setCustomIcon] = useState(localStorage.getItem('faviconUrl') || 'https://www.google.com/favicon.ico');
 
   const { language, setLanguage, militaryTime, setMilitaryTime, timeZone, setTimeZone, t } = useLanguage();
 
@@ -566,58 +547,6 @@ const Settings: React.FC<SettingsProps> = ({ onClose }) => {
     setCustomThemes(defaultThemes);
   };
 
-  const openAboutBlank = () => {
-    const preset = CLOAK_PRESETS.find(p => p.id === cloakPreset);
-    const title = cloakPreset === 'custom' ? customTitle : preset?.title || 'Google';
-    const icon = cloakPreset === 'custom' ? customIcon : preset?.icon || 'https://www.google.com/favicon.ico';
-
-    const url = window.location.href;
-    const win = window.open('about:blank', '_blank');
-    if (!win) {
-      alert('Popup blocked! Please allow popups for this site.');
-      return;
-    }
-    
-    const doc = win.document;
-    const iframe = doc.createElement('iframe');
-    const style = iframe.style;
-
-    doc.title = title;
-    
-    // Favicon for the new tab
-    if (icon) {
-      const link = doc.createElement('link');
-      link.rel = 'icon';
-      link.href = icon;
-      doc.head.appendChild(link);
-    }
-
-    iframe.src = url;
-    style.position = 'fixed';
-    style.top = '0';
-    style.left = '0';
-    style.bottom = '0';
-    style.right = '0';
-    style.width = '100%';
-    style.height = '100%';
-    style.border = 'none';
-    style.margin = '0';
-    style.padding = '0';
-    style.overflow = 'hidden';
-    style.zIndex = '999999';
-
-    doc.body.appendChild(iframe);
-    doc.body.style.margin = '0';
-    doc.body.style.padding = '0';
-    doc.body.style.overflow = 'hidden';
-
-    // Save settings for next time if custom
-    if (cloakPreset === 'custom') {
-      localStorage.setItem('siteTitle', customTitle);
-      localStorage.setItem('faviconUrl', customIcon);
-    }
-  };
-
   return (
     <div className="relative bg-bg/95 text-text-primary font-sans flex flex-col h-full overflow-hidden">
       <div className="absolute inset-0 z-0 overflow-hidden">
@@ -787,76 +716,7 @@ const Settings: React.FC<SettingsProps> = ({ onClose }) => {
               </motion.div>
             )}
 
-            {activeSection === 'cloak' && (
-              <motion.div
-                key="cloak"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.5, ease: "circOut" }}
-                className="space-y-8"
-              >
-                <div className="flex items-end justify-between border-b border-white/5 pb-6">
-                  <div>
-                    <h3 className="text-3xl font-black uppercase italic tracking-tighter text-white mb-1">{t('Privacy & Cloak')}</h3>
-                    <p className="text-[10px] text-text-muted font-black uppercase tracking-[0.3em]">{t('Tab masking and disguises')}</p>
-                  </div>
-                </div>
-                
-                <div className="space-y-6">
-                   <div className="bg-white/[0.03] border border-white/5 rounded-3xl p-8 backdrop-blur-md">
-                      <div className="flex items-center gap-4 mb-6">
-                         <div className="p-3 rounded-2xl bg-accent/10 border border-accent/20 text-accent">
-                            <VenetianMask size={24} />
-                         </div>
-                         <div>
-                            <h4 className="text-base font-black uppercase italic tracking-widest">{t('Cloaking Preset')}</h4>
-                            <p className="text-[10px] text-text-muted uppercase tracking-widest">{t('Switch tab identity instantly')}</p>
-                         </div>
-                      </div>
-
-                      <CustomSelect 
-                        value={cloakPreset}
-                        onChange={setCloakPreset}
-                        options={CLOAK_PRESETS.map((p: any) => ({ value: p.id, label: p.id === 'custom' ? t('Custom Disguise') : p.label }))}
-                      />
-
-                      <motion.button
-                        whileHover={{ scale: 1.02, backgroundColor: 'var(--accent)' }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={openAboutBlank}
-                        className="w-full mt-8 py-5 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-center gap-3 text-[11px] font-black uppercase italic tracking-[0.3em] transition-all hover:shadow-[0_0_30px_rgba(255,0,0,0.2)]"
-                      >
-                        {t('Open Disguised Tab')} <ExternalLink size={16} />
-                      </motion.button>
-                   </div>
-                   <div className="space-y-4 pt-4 border-t border-white/5">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-[10px] font-black text-text-muted uppercase tracking-[0.2em] mb-2">{t('Tab Title')}</label>
-                        <input 
-                          type="text" 
-                          placeholder="e.g. Google"
-                          value={customTitle} 
-                          onChange={(e) => setCustomTitle(e.target.value)}
-                          className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs font-bold focus:outline-none focus:border-accent transition-all text-white placeholder:text-text-muted/30"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-[10px] font-black text-text-muted uppercase tracking-[0.2em] mb-2">{t('Tab Icon URL')}</label>
-                        <input 
-                          type="text" 
-                          placeholder={t('Favicon Source URL')}
-                          value={customIcon} 
-                          onChange={(e) => setCustomIcon(e.target.value)}
-                          className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs font-bold focus:outline-none focus:border-accent transition-all text-white placeholder:text-text-muted/30"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            )}
+            {/* Cloak feature removed */}
 
             {activeSection === 'language' && (
               <motion.div

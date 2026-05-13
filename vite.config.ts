@@ -27,7 +27,7 @@ export default defineConfig(({ mode }) => {
         },
       },
       server: {
-        port: 3000,
+        port: 3001,
         host: '0.0.0.0',
         watch: {
           ignored: ['**/db/**', '**/firebase-applet-config.json', '**/metadata.json']

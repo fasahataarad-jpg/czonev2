@@ -59,7 +59,7 @@ function writeSingleDb(collection: string, data: any) {
 dotenv.config();
 
 const app = express();
-const PORT = 3000;
+const PORT = 3001;
 
 app.set('trust proxy', 1);
 
