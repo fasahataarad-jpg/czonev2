@@ -1,0 +1,23 @@
+# Replit-specific files (not needed for static hosting)
+server.py
+.replit
+replit.nix
+.local/
+.cache/
+.agents
+zipFile.zip
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors
+.vscode/
+.idea/
+*.swp
+*.swo
