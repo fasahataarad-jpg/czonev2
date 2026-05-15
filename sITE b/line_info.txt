@@ -1,1 +1,0 @@
-869:                                {t('Meet Team')} <Users size={18} />
