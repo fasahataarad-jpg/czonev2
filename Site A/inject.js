@@ -1559,19 +1559,90 @@
 
   /* =========================================================
      VIDEO CALL CONTROLS FIX
-     Injects Decline / Mute / Camera-Off buttons when a
-     video call is active but the native controls are missing.
+     Intercepts getUserMedia to capture the local stream, then
+     injects overlay controls when an active call UI is visible.
+     Hang button clicks the red end-call button in the React UI
+     using a reliable visual/structural selector instead of text.
   ========================================================= */
+
+  // Intercept getUserMedia early to capture local stream
+  (function patchGetUserMedia() {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return;
+    const orig = navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);
+    navigator.mediaDevices.getUserMedia = function(constraints) {
+      return orig(constraints).then(stream => {
+        window.__localStream__ = stream;
+        return stream;
+      });
+    };
+  })();
+
   let _callOverlayPresent = false;
+
+  // Detect if the call UI is currently visible (full-screen call overlay from DMsHub)
+  function isCallUiActive() {
+    // DMsHub renders the active call as a fixed full-screen div containing video elements
+    // It sits at z-index 5000 and contains video+audio elements
+    const videos = document.querySelectorAll('video');
+    if (!videos.length) return false;
+    // Check that at least one video is inside a fixed/full-screen container (the call UI)
+    for (const v of videos) {
+      const parent = v.closest('[class*="fixed"][class*="inset"]') ||
+                     v.closest('[style*="position: fixed"]') ||
+                     v.closest('[style*="position:fixed"]');
+      if (parent) return true;
+    }
+    // Fallback: any video with an active srcObject stream counts
+    for (const v of videos) {
+      if (v.srcObject && v.srcObject.getTracks && v.srcObject.getTracks().length > 0) return true;
+    }
+    return false;
+  }
+
+  // Find the React end-call button: a red circular button (~56px) in the call bar
+  function findEndCallButton() {
+    const buttons = document.querySelectorAll('button');
+    for (const btn of buttons) {
+      const style = window.getComputedStyle(btn);
+      const bg = style.backgroundColor || '';
+      const w = parseFloat(style.width);
+      const h = parseFloat(style.height);
+      const br = style.borderRadius;
+      const title = (btn.title || btn.ariaLabel || '').toLowerCase();
+      // Red background + circular + roughly 48-60px (the hang-up button)
+      const isRed = bg.includes('rgb(239') || bg.includes('rgb(220') || bg.includes('rgb(225') ||
+                    bg.includes('rgba(220') || bg.includes('rgb(248');
+      const isCircle = br === '50%' || br === '9999px' || parseFloat(br) >= 20;
+      const isCallSize = w >= 44 && w <= 72 && h >= 44 && h <= 72;
+      if (isRed && isCircle && isCallSize && btn !== document.getElementById('fas-hang-btn')) return btn;
+      // Also match by title keywords as secondary check
+      if (title.includes('end') || title.includes('hang') || title.includes('decline')) return btn;
+    }
+    return null;
+  }
+
+  // Find the React mute button (grey circular ~48px in call bar)
+  function findMuteButton() {
+    const buttons = document.querySelectorAll('button');
+    for (const btn of buttons) {
+      const title = (btn.title || '').toLowerCase();
+      if (title === 'mute' || title === 'unmute' || title === 'toggle mute') return btn;
+    }
+    return null;
+  }
+
+  // Find the React camera button
+  function findCameraButton() {
+    const buttons = document.querySelectorAll('button');
+    for (const btn of buttons) {
+      const title = (btn.title || '').toLowerCase();
+      if (title.includes('camera') || title === 'video' || title.includes('cam')) return btn;
+    }
+    return null;
+  }
 
   function injectCallControls() {
     if (document.getElementById('fas-call-overlay')) return;
-
-    const videos = document.querySelectorAll('video');
-    if (!videos.length) {
-      _callOverlayPresent = false;
-      return;
-    }
 
     _callOverlayPresent = true;
 
@@ -1598,8 +1669,9 @@
     let _muted = false;
     let _camOff = false;
 
-    function makeBtn(bg, title, svgPath, onClick) {
+    function makeBtn(id, bg, title, svgPath, onClick) {
       const btn = document.createElement('button');
+      btn.id = id;
       btn.title = title;
       btn.style.cssText = [
         `background:${bg}`,
@@ -1628,43 +1700,54 @@
     const camOffSVG = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.66 6H14a2 2 0 0 1 2 2v2.5l5.248-3.062A.5.5 0 0 1 22 7.87v8.196"/><path d="M16 16a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h2"/><line x1="2" y1="2" x2="22" y2="22"/></svg>`;
     const hangSVG = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.38 2 2 0 0 1 3.6 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.56a16 16 0 0 0 6.29 6.29l1.63-1.63a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/><line x1="1" y1="1" x2="23" y2="23"/></svg>`;
 
-    const muteBtn = makeBtn('rgba(60,60,70,0.9)', 'Toggle Mute', micSVG, () => {
+    function getLocalStream() {
+      // Try captured stream first, then scan video elements for muted local preview
+      if (window.__localStream__) return window.__localStream__;
+      const videos = document.querySelectorAll('video');
+      for (const v of videos) {
+        if (v.muted && v.srcObject) return v.srcObject;
+      }
+      return null;
+    }
+
+    const muteBtn = makeBtn('fas-mute-btn', 'rgba(60,60,70,0.9)', 'Toggle Mute', micSVG, () => {
+      // Try clicking the React mute button first
+      const reactBtn = findMuteButton();
+      if (reactBtn) { reactBtn.click(); }
+
       _muted = !_muted;
       muteBtn.innerHTML = _muted ? micOffSVG : micSVG;
       muteBtn.style.background = _muted ? 'rgba(200,50,50,0.85)' : 'rgba(60,60,70,0.9)';
-      document.querySelectorAll('video').forEach(v => {
-        if (v.srcObject) {
-          v.srcObject.getAudioTracks().forEach(t => { t.enabled = !_muted; });
-        }
-      });
-      const localStream = window.__localStream__;
+
+      // Also directly mute audio tracks as fallback
+      const localStream = getLocalStream();
       if (localStream) localStream.getAudioTracks().forEach(t => { t.enabled = !_muted; });
     });
 
-    const camBtn = makeBtn('rgba(60,60,70,0.9)', 'Toggle Camera', camSVG, () => {
+    const camBtn = makeBtn('fas-cam-btn', 'rgba(60,60,70,0.9)', 'Toggle Camera', camSVG, () => {
+      // Try clicking the React camera button first
+      const reactBtn = findCameraButton();
+      if (reactBtn) { reactBtn.click(); }
+
       _camOff = !_camOff;
       camBtn.innerHTML = _camOff ? camOffSVG : camSVG;
       camBtn.style.background = _camOff ? 'rgba(200,50,50,0.85)' : 'rgba(60,60,70,0.9)';
-      const localStream = window.__localStream__;
+
+      // Also directly toggle video tracks as fallback
+      const localStream = getLocalStream();
       if (localStream) localStream.getVideoTracks().forEach(t => { t.enabled = !_camOff; });
-      document.querySelectorAll('video').forEach(v => {
-        if (v.srcObject) {
-          const tracks = v.srcObject.getVideoTracks();
-          if (tracks.length && !v.dataset.fasRemote) {
-            tracks.forEach(t => { t.enabled = !_camOff; });
-          }
-        }
-      });
     });
 
-    const hangBtn = makeBtn('rgba(220,40,40,0.9)', 'Decline / End Call', hangSVG, () => {
-      const endBtns = document.querySelectorAll('button');
-      for (const btn of endBtns) {
-        const txt = (btn.textContent || btn.title || btn.ariaLabel || '').toLowerCase();
-        if (txt.includes('end') || txt.includes('declin') || txt.includes('hang') || txt.includes('leave')) {
-          btn.click();
-          break;
-        }
+    const hangBtn = makeBtn('fas-hang-btn', 'rgba(220,40,40,0.9)', 'End Call', hangSVG, () => {
+      // Find and click the React end-call button
+      const reactEndBtn = findEndCallButton();
+      if (reactEndBtn) {
+        reactEndBtn.click();
+      } else {
+        // Fallback: stop all local stream tracks directly
+        const localStream = getLocalStream();
+        if (localStream) localStream.getTracks().forEach(t => t.stop());
+        window.__localStream__ = null;
       }
       overlay.remove();
       _callOverlayPresent = false;
@@ -1683,9 +1766,8 @@
   }
 
   function checkCallState() {
-    const videos = document.querySelectorAll('video');
-    const hasActiveCall = videos.length > 0;
-    if (hasActiveCall) {
+    const active = isCallUiActive();
+    if (active) {
       injectCallControls();
     } else if (_callOverlayPresent) {
       removeCallOverlay();
